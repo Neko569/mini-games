@@ -1,0 +1,24 @@
+name = "fxq-game"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 静态资源（public/ 目录）；run_worker_first 让 OPTIONS/PNA 预检先过 Worker
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "RoomDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomDO"]
+
+# 部署后绑定自定义域名（部署前保持注释）：
+# routes = [
+#   { pattern = "game.yourdomain.com/*", zone_name = "yourdomain.com" }
+# ]
