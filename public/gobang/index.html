@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>五子棋 · 游戏厅</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚫</text></svg>">
+<style>
+  :root { --bg:#0f1420; --panel:#1a2233; --text:#e8ecf4; --muted:#8b97ad; --accent:#4f8cff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; min-height:100vh; }
+  .hidden { display:none !important; }
+  #lobby { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .lobby-card { background:var(--panel); border-radius:16px; padding:36px 32px; width:min(92vw,380px); text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.45); }
+  .lobby-card h1 { font-size:28px; margin-bottom:16px; }
+  .profile-row { display:flex; gap:10px; margin-bottom:20px; }
+  .avatar { width:44px; height:44px; border-radius:10px; object-fit:cover; background:#0d1320; }
+  input { background:#0d1320; border:1px solid #2a3854; color:var(--text); border-radius:10px; padding:11px 14px; font-size:14px; outline:none; flex:1; }
+  input:focus { border-color:var(--accent); }
+  .btn { border:none; border-radius:10px; padding:11px 18px; font-size:14px; font-weight:600; cursor:pointer; background:var(--accent); color:#fff; }
+  .btn.primary.big { width:100%; padding:13px; font-size:15px; margin-bottom:14px; }
+  .btn.ghost { background:#2a3854; }
+  .btn:disabled { opacity:.45; cursor:default; }
+  header { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--panel); border-bottom:1px solid #24304a; flex-wrap:wrap; }
+  header .title { font-weight:700; }
+  .code { font-family:monospace; background:#0d1320; padding:4px 10px; border-radius:8px; cursor:pointer; letter-spacing:2px; }
+  header .spacer { flex:1; }
+  main { display:flex; gap:16px; padding:16px; justify-content:center; align-items:flex-start; }
+  .board-wrap { position:relative; }
+  #board { width:min(92vw,640px); height:auto; border-radius:10px; background:#c8a05c; box-shadow:0 8px 30px rgba(0,0,0,.4); cursor:pointer; }
+  .turn-banner { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(16,22,34,.9); color:#fff; padding:12px 22px; border-radius:12px; font-size:15px; font-weight:600; border:1px solid #2a3854; pointer-events:none; }
+  .turn-banner.me { border-color:var(--accent); color:#9ecbff; }
+  .panel { width:250px; display:flex; flex-direction:column; gap:12px; }
+  .player { display:flex; align-items:center; gap:8px; background:var(--panel); padding:10px 12px; border-radius:10px; font-size:14px; }
+  .player.off { opacity:.5; }
+  .player.me { outline:1px solid var(--accent); }
+  .player .dot { width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.4); }
+  .player.empty { color:var(--muted); }
+  .badge { font-size:11px; background:#2a3854; padding:2px 6px; border-radius:6px; }
+  .conn { font-size:11px; color:#e07a7a; margin-left:auto; }
+  .hint { color:var(--muted); font-size:13px; min-height:18px; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#2a3242; padding:10px 20px; border-radius:12px; z-index:99; border:1px solid #3a4458; font-size:14px; }
+  .toast.err { background:#3a2229; border-color:#5c3040; }
+  @media (max-width:900px) { main { flex-direction:column; align-items:center; } .panel { width:min(92vw,640px); } }
+</style>
+</head>
+<body>
+<div id="lobby" class="hidden">
+  <div class="lobby-card">
+    <h1>⚫ 五子棋</h1>
+    <div class="profile-row">
+      <img id="lobby-avatar" class="avatar" alt="">
+      <input id="lobby-name" maxlength="16" placeholder="你的昵称">
+    </div>
+    <button id="btn-create" class="btn primary big">创建房间</button>
+    <div class="profile-row"><input id="join-code" maxlength="4" placeholder="房间号" autocapitalize="off" style="letter-spacing:2px;font-family:monospace"><button id="btn-join" class="btn">加入</button></div>
+    <div id="lobby-msg" style="color:#e07a7a;font-size:12px;min-height:16px"></div>
+  </div>
+</div>
+
+<div id="game" class="hidden">
+  <header>
+    <span class="title">⚫ 五子棋</span>
+    <span class="code" id="room-code" title="点击复制邀请链接"></span>
+    <span class="spacer"></span>
+    <button id="btn-start" class="btn hidden">开始对局</button>
+    <button id="btn-leave" class="btn ghost">离开</button>
+  </header>
+  <main>
+    <div class="board-wrap">
+      <canvas id="board" width="640" height="640"></canvas>
+      <div id="turn-banner" class="turn-banner hidden"></div>
+    </div>
+    <aside class="panel">
+      <div id="players"></div>
+      <div id="action-hint" class="hint"></div>
+      <div id="chat-log" style="height:200px;overflow-y:auto;background:var(--panel);border-radius:10px;padding:8px;font-size:13px;line-height:1.5"></div>
+      <div style="display:flex;gap:8px">
+        <input id="chat-input" maxlength="200" placeholder="聊天…" style="flex:1">
+        <button id="btn-chat" class="btn">发</button>
+      </div>
+    </aside>
+  </main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script type="module" src="./gobang.js"></script>
+</body>
+</html>

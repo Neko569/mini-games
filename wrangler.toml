@@ -14,9 +14,17 @@ run_worker_first = true
 name = "ROOM"
 class_name = "RoomDO"
 
+[[durable_objects.bindings]]
+name = "GOBANG"
+class_name = "GobangRoomDO"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RoomDO"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["GobangRoomDO"]
 
 # 部署后绑定自定义域名（部署前保持注释）：
 # routes = [

@@ -1,14 +1,20 @@
-// Worker 入口：静态资源 + WS 路由 + 房间号生成
+// Worker 入口：静态资源 + 多游戏路由（fxq / gobang）+ 房间号生成
 import { RoomDO } from './room.js';
+import { GobangRoomDO } from './gobang-room.js';
 
-export { RoomDO };
+export { RoomDO, GobangRoomDO };
 
-const ALPHABET = 'abcdefghjkmnpqrstuvwxyz'; // 无易混字符
-const DIGITS = '23456789';
-function genRoomCode() {
-  const b = new Uint8Array(4);
+// 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
+const GAMES = {
+  fxq:    { cls: 'ROOM',   prefix: 'f', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  gobang: { cls: 'GOBANG', prefix: 'g', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+};
+
+function genRoomCode(cfg) {
+  const b = new Uint8Array(3);
   crypto.getRandomValues(b);
-  return `${ALPHABET[b[0] % ALPHABET.length]}${ALPHABET[b[1] % ALPHABET.length]}${DIGITS[b[2] % DIGITS.length]}${DIGITS[b[3] % DIGITS.length]}`;
+  // 首字母 = 游戏标识（f=飞行棋 g=五子棋），加入时按此路由
+  return `${cfg.prefix}${cfg.abc[b[0] % cfg.abc.length]}${cfg.dig[b[1] % cfg.dig.length]}${cfg.dig[b[2] % cfg.dig.length]}`;
 }
 
 const CORS = {
@@ -16,6 +22,12 @@ const CORS = {
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Private-Network': 'true',   // https 页面 → localhost 调试场景
 };
+
+function gameDO(env, game, code) {
+  const g = GAMES[game];
+  if (!g) return null;
+  return env[g.cls].get(env[g.cls].idFromName(`${game}:${code}`));
+}
 
 export default {
   async fetch(req, env) {
@@ -30,36 +42,37 @@ export default {
       }});
     }
 
-    // 新建房（CORS 开放：仅返回随机房间号，无敏感数据）
+    // 新建房：/api/new-room?game=fxq|gobang
     if (url.pathname === '/api/new-room') {
-      if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+      const game = url.searchParams.get('game') || 'fxq';
+      const cfg = GAMES[game];
+      if (!cfg) return Response.json({ error: 'unknown game' }, { status: 400, headers: CORS });
       for (let i = 0; i < 8; i++) {
-        const code = genRoomCode();
-        const id = env.ROOM.idFromName(code);
-        const probe = await env.ROOM.get(id).fetch('https://do/probe');
+        const code = genRoomCode(cfg);
+        const probe = await (await gameDO(env, game, code)).fetch('https://do/probe');
         const j = await probe.json();
-        if (!j.occupied) return Response.json({ code }, { headers: CORS });
+        if (!j.occupied) return Response.json({ code, game }, { headers: CORS });
       }
-      return Response.json({ code: genRoomCode() }, { headers: CORS });
+      return Response.json({ code: genRoomCode(cfg), game }, { headers: CORS });
     }
 
-    // 房间探测（CORS 开放：房间是否存在/是否开局）
+    // 房间探测：/api/room-info?code=xxxx（按首字母识别游戏）
     if (url.pathname === '/api/room-info') {
-      if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
       const code = (url.searchParams.get('code') || '').toLowerCase();
       if (!/^[a-z0-9]{4}$/.test(code)) return Response.json({ error: 'code' }, { status: 400, headers: CORS });
-      const id = env.ROOM.idFromName(code);
-      const resp = await env.ROOM.get(id).fetch('https://do/probe');
+      const game = code[0] === 'g' ? 'gobang' : 'fxq';
+      const resp = await (await gameDO(env, game, code)).fetch('https://do/probe');
       const j = await resp.json();
-      return Response.json(j, { headers: CORS });
+      return Response.json({ ...j, game }, { headers: CORS });
     }
 
-    // WS 升级：/ws/{code}
-    const m = url.pathname.match(/^\/ws\/([a-z0-9]{4})$/i);
+    // WS 升级：/ws/{game}/{code}
+    const m = url.pathname.match(/^\/ws\/(fxq|gobang)\/([a-z0-9]{4})$/i);
     if (m) {
-      const code = m[1].toLowerCase();
-      const id = env.ROOM.idFromName(code);
-      return env.ROOM.get(id).fetch('https://do/join' + url.search, req);
+      const game = m[1].toLowerCase();
+      const code = m[2].toLowerCase();
+      const stub = await gameDO(env, game, code);
+      return stub.fetch(`https://do/join${url.search}`, req);
     }
 
     // 静态资源

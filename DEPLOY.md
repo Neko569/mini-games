@@ -1,6 +1,7 @@
 # FXQ 飞行棋 · 部署说明
 
-> 目标：把游戏部署到 Cloudflare 免费版（绑你的自定义域名），并让 ZeroTalk 油猴脚本联动起来。
+> 目标：把游戏平台部署到 Cloudflare 免费版（绑你的自定义域名），并让 ZeroTalk 油猴脚本联动起来。
+> 已含游戏：✈️ 飞行棋、⚫ 五子棋（v2 新增）。主入口 `/` 为游戏厅（建房/加入自动路由）。
 > 全程零费用（CF Workers/DO/Pages 免费额度内），预计 15 分钟。
 
 ---
@@ -93,6 +94,7 @@ cd fxq-cf && npx wrangler dev     # http://localhost:8787
 | 症状 | 原因/解法 |
 |---|---|
 | 访问 game.xxx 报 522/523 | DNS 记录没开橙色云（Proxied） |
+| 油猴卡片点开后 404 | 油猴里 `GAME_ORIGIN` 与部署域名不一致 |
 | `wrangler deploy` 报 zone not found | 域名 NS 没托管到 CF，或 zone_name 写错 |
 | 大陆访问慢 | CF 免费版正常现象（200-300ms），能玩；`*.workers.dev` 在大陆被污染，**必须用自定义域名** |
 | 油猴悬浮球点了没反应 | 先确认进入了聊天房间（要 WS 连接）；再看 `GAME_ORIGIN` 是否改对 |

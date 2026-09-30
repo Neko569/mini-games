@@ -1,5 +1,5 @@
 /* 飞行棋客户端 — 原生 JS + canvas（棋盘几何取自官方坐标函数） */
-import { boardCoord, movablePlanes } from '/engine.js';
+import { boardCoord, movablePlanes } from './engine.js';
 
 const $ = (s) => document.querySelector(s);
 const COLORS = ['#f43f5e', '#3b82f6', '#22c55e', '#eab308'];
@@ -31,21 +31,21 @@ function showLobby() {
     profile.name = $('#lobby-name').value.slice(0, 16) || '玩家';
     localStorage.setItem('fxq_profile', JSON.stringify(profile));
     const r = await fetch('/api/new-room').then(r => r.json());
-    location.href = '/?room=' + r.code;
+    location.href = '/fxq?room=' + r.code;
   };
   $('#btn-join').onclick = () => {
     const code = $('#lobby-code').value.trim().toLowerCase();
     if (!/^[a-z0-9]{4}$/.test(code)) { $('#lobby-msg').textContent = '房间号为 4 位字母数字'; return; }
     profile.name = $('#lobby-name').value.slice(0, 16) || '玩家';
     localStorage.setItem('fxq_profile', JSON.stringify(profile));
-    location.href = '/?room=' + code;
+    location.href = '/fxq?room=' + code;
   };
 }
 
 /* ---------- websocket ---------- */
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const url = `${proto}://${location.host}/ws/${ROOM}` +
+  const url = `${proto}://${location.host}/ws/fxq/${ROOM}` +
     `?gid=${encodeURIComponent(profile.gid)}&name=${encodeURIComponent(profile.name)}` +
     (profile.avatar ? `&avatar=${encodeURIComponent(profile.avatar)}` : '');
   ws = new WebSocket(url);
