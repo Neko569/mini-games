@@ -1,0 +1,15 @@
+const W = 'ws://127.0.0.1:8787/ws/';
+const { code } = await fetch('http://127.0.0.1:8787/api/new-room?game=davinci').then(r => r.json());
+const ws = new WebSocket(W + 'davinci/' + code + '?gid=g1&name=A');
+const msgs = [];
+ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.t === 'state') msgs.push(m.pub); };
+ws.onopen = () => ws.send(JSON.stringify({ t: 'join' }));
+await new Promise(r => setTimeout(r, 400));
+ws.send(JSON.stringify({ t: 'start' }));
+await new Promise(r => setTimeout(r, 400));
+ws.send(JSON.stringify({ t: 'draw' }));
+await new Promise(r => setTimeout(r, 500));
+const last = msgs[msgs.length - 1];
+console.log('states received:', msgs.length);
+console.log('last state:', JSON.stringify(last));
+process.exit(0);

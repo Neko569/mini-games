@@ -3,8 +3,9 @@ import { RoomDO } from './room.js';
 import { GobangRoomDO } from './gobang-room.js';
 import { UnoRoomDO } from './uno-room.js';
 import { PlanesRoomDO } from './planes-room.js';
+import { DavinciRoomDO } from './davinci-room.js';
 
-export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO };
+export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO };
 
 // 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
 const GAMES = {
@@ -12,6 +13,7 @@ const GAMES = {
   gobang: { cls: 'GOBANG',  prefix: 'g', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
   uno:    { cls: 'UNO',     prefix: 'u', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
   planes: { cls: 'PLANES',  prefix: 'p', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  davinci: { cls: 'DAVINCI', prefix: 'd', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
 };
 
 function genRoomCode(cfg) {
@@ -64,7 +66,7 @@ export default {
     if (url.pathname === '/api/room-info') {
       const code = (url.searchParams.get('code') || '').toLowerCase();
       if (!/^[a-z0-9]{4}$/.test(code)) return Response.json({ error: 'code' }, { status: 400, headers: CORS });
-      const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes' };
+      const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci' };
       const game = PREFIX_GAME[code[0]] || 'fxq';
       const resp = await (await gameDO(env, game, code)).fetch('https://do/probe');
       const j = await resp.json();
@@ -72,7 +74,7 @@ export default {
     }
 
     // WS 升级：/ws/{game}/{code}
-    const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes)\/([a-z0-9]{4})$/i);
+    const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes|davinci)\/([a-z0-9]{4})$/i);
     if (m) {
       const game = m[1].toLowerCase();
       const code = m[2].toLowerCase();
