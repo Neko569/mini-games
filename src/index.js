@@ -1,13 +1,17 @@
 // Worker 入口：静态资源 + 多游戏路由（fxq / gobang）+ 房间号生成
 import { RoomDO } from './room.js';
 import { GobangRoomDO } from './gobang-room.js';
+import { UnoRoomDO } from './uno-room.js';
+import { PlanesRoomDO } from './planes-room.js';
 
-export { RoomDO, GobangRoomDO };
+export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO };
 
 // 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
 const GAMES = {
-  fxq:    { cls: 'ROOM',   prefix: 'f', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
-  gobang: { cls: 'GOBANG', prefix: 'g', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  fxq:    { cls: 'ROOM',    prefix: 'f', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  gobang: { cls: 'GOBANG',  prefix: 'g', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  uno:    { cls: 'UNO',     prefix: 'u', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  planes: { cls: 'PLANES',  prefix: 'p', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
 };
 
 function genRoomCode(cfg) {
@@ -60,14 +64,15 @@ export default {
     if (url.pathname === '/api/room-info') {
       const code = (url.searchParams.get('code') || '').toLowerCase();
       if (!/^[a-z0-9]{4}$/.test(code)) return Response.json({ error: 'code' }, { status: 400, headers: CORS });
-      const game = code[0] === 'g' ? 'gobang' : 'fxq';
+      const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes' };
+      const game = PREFIX_GAME[code[0]] || 'fxq';
       const resp = await (await gameDO(env, game, code)).fetch('https://do/probe');
       const j = await resp.json();
       return Response.json({ ...j, game }, { headers: CORS });
     }
 
     // WS 升级：/ws/{game}/{code}
-    const m = url.pathname.match(/^\/ws\/(fxq|gobang)\/([a-z0-9]{4})$/i);
+    const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes)\/([a-z0-9]{4})$/i);
     if (m) {
       const game = m[1].toLowerCase();
       const code = m[2].toLowerCase();

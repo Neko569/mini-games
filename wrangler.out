@@ -5,55 +5,250 @@ Your Worker has access to the following bindings:
 Binding                        Resource            Mode
 env.ROOM (RoomDO)              Durable Object      local
 env.GOBANG (GobangRoomDO)      Durable Object      local
+env.UNO (UnoRoomDO)            Durable Object      local
+env.PLANES (PlanesRoomDO)      Durable Object      local
 env.ASSETS                     Assets              local
 
 ⎔ Starting local server...
 [wrangler:info] Ready on http://localhost:8787
-[wrangler:info] GET / 200 OK (52ms)
-[wrangler:info] GET /gobang 307 Temporary Redirect (14ms)
-[wrangler:info] GET /gobang/ 200 OK (7ms)
-[wrangler:info] GET /gobang/gobang.js 200 OK (12ms)
-[wrangler:info] GET /gobang 307 Temporary Redirect (18ms)
-[wrangler:info] GET /gobang/ 200 OK (8ms)
-[wrangler:info] GET /gobang/gobang.js 304 Not Modified (27ms)
-[wrangler:info] GET /gobang 307 Temporary Redirect (17ms)
-[wrangler:info] GET /gobang/ 200 OK (7ms)
-[wrangler:info] GET /gobang/gobang.js 200 OK (27ms)
-[wrangler:info] GET /gobang/ 304 Not Modified (17ms)
-[wrangler:info] GET /gobang/gobang.js 304 Not Modified (18ms)
-[wrangler:info] GET /gobang/ 304 Not Modified (20ms)
-[wrangler:info] GET /gobang/gobang.js 304 Not Modified (31ms)
-[wrangler:info] GET /gobang 307 Temporary Redirect (17ms)
-[wrangler:info] GET /gobang/ 200 OK (7ms)
-[wrangler:info] GET /gobang/gobang.js 304 Not Modified (26ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (24ms)
-[wrangler:info] GET /gobang 307 Temporary Redirect (25ms)
-[wrangler:info] GET /gobang/ 200 OK (8ms)
-[wrangler:info] GET /gobang/gobang.js 304 Not Modified (25ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (23ms)
-[wrangler:info] GET /gobang/ 304 Not Modified (28ms)
-[wrangler:info] GET /gobang/gobang.js 304 Not Modified (52ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (15ms)
-⎔ Reloading local server...
-⎔ Local server updated and ready
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (29ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (28ms)
-⎔ Reloading local server...
-⎔ Local server updated and ready
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (33ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (35ms)
-⎔ Reloading local server...
-⎔ Local server updated and ready
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (30ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (27ms)
-⎔ Reloading local server...
-⎔ Local server updated and ready
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (25ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (28ms)
-[wrangler:info] GET /gobang/ 304 Not Modified (17ms)
-[wrangler:info] GET /gobang/gobang.js 200 OK (37ms)
-[wrangler:info] GET /ws/gobang/gte2 101 Switching Protocols (14ms)
-[wrangler:info] GET / 200 OK (6ms)
+[wrangler:info] GET / 200 OK (48ms)
+[wrangler:info] GET /api/new-room 200 OK (20ms)
+[wrangler:info] GET /api/new-room 200 OK (17ms)
+[wrangler:info] GET /api/new-room 200 OK (19ms)
+[wrangler:info] GET /ws/uno/uw62 101 Switching Protocols (9ms)
+[wrangler:info] GET /ws/uno/uw62 101 Switching Protocols (54ms)
+[wrangler:info] GET /api/new-room 200 OK (17ms)
+[wrangler:info] GET /ws/uno/um99 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/uno/um99 101 Switching Protocols (33ms)
+[wrangler:info] GET /api/new-room 200 OK (31ms)
+[wrangler:info] GET /ws/uno/ur67 101 Switching Protocols (12ms)
+[wrangler:info] GET /api/new-room 200 OK (18ms)
+[wrangler:info] GET /ws/uno/ua56 101 Switching Protocols (8ms)
+[wrangler:info] GET /api/new-room 200 OK (21ms)
+[wrangler:info] GET /ws/uno/ub87 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/uno/ub87 101 Switching Protocols (19ms)
+[wrangler:info] GET /api/new-room 200 OK (20ms)
+[wrangler:info] GET /ws/uno/uw46 101 Switching Protocols (16ms)
+[wrangler:info] GET /ws/uno/uw46 101 Switching Protocols (82ms)
+[wrangler:info] GET /api/new-room 200 OK (19ms)
+[wrangler:info] GET /ws/uno/um54 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/uno/um54 101 Switching Protocols (29ms)
+[wrangler:info] GET /api/new-room 200 OK (17ms)
+[wrangler:info] GET /ws/uno/uu82 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/uno/uu82 101 Switching Protocols (42ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/uno/un58 101 Switching Protocols (6ms)
+[wrangler:info] GET /ws/uno/un58 101 Switching Protocols (20ms)
 [wrangler:info] GET /api/new-room 200 OK (16ms)
-[wrangler:info] GET /ws/fxq/fc92 101 Switching Protocols (5ms)
-[wrangler:info] GET /ws/fxq/fc92 101 Switching Protocols (32ms)
+[wrangler:info] GET /ws/uno/ut53 101 Switching Protocols (6ms)
+[wrangler:info] GET /ws/uno/ut53 101 Switching Protocols (25ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/uno/uk32 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/uno/uk32 101 Switching Protocols (33ms)
+[wrangler:info] GET /api/new-room 200 OK (15ms)
+[wrangler:info] GET /ws/uno/uw22 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/uno/uw22 101 Switching Protocols (144ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/uno/ug86 101 Switching Protocols (10ms)
+[wrangler:info] GET /ws/uno/ug86 101 Switching Protocols (14ms)
+[wrangler:info] GET /api/new-room 200 OK (13ms)
+[wrangler:info] GET /ws/uno/uf23 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/uno/uf23 101 Switching Protocols (46ms)
+[wrangler:info] GET /api/new-room 200 OK (12ms)
+[wrangler:info] GET /ws/uno/uf23 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/uno/uf23 101 Switching Protocols (32ms)
+[wrangler:info] GET / 200 OK (6ms)
+[wrangler:info] GET /api/new-room 200 OK (13ms)
+[wrangler:info] GET /ws/uno/ux72 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/uno/ux72 101 Switching Protocols (42ms)
+[wrangler:info] GET /api/new-room 200 OK (13ms)
+[wrangler:info] GET /ws/uno/uy28 101 Switching Protocols (6ms)
+[wrangler:info] GET /ws/uno/uy28 101 Switching Protocols (18ms)
+[wrangler:info] GET /api/new-room 200 OK (15ms)
+[wrangler:info] GET /ws/uno/ud37 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/uno/ud37 101 Switching Protocols (18ms)
+[wrangler:info] GET /api/new-room 200 OK (18ms)
+[wrangler:info] GET /ws/uno/up23 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/uno/up23 101 Switching Protocols (28ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/uno/uf43 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/uno/uf43 101 Switching Protocols (16ms)
+[wrangler:info] GET /api/new-room 200 OK (13ms)
+[wrangler:info] GET /ws/planes/pg38 101 Switching Protocols (7ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNOSENTRY reporting trace with exceptions, but no exception outcome; trace->eventInfo = HibernatableWebSocketEventInfo[0m
+
+
+[wrangler:info] GET /ws/planes/pg38 101 Switching Protocols (56ms)
+[wrangler:info] GET /api/new-room 200 OK (15ms)
+[wrangler:info] GET /ws/planes/pk74 101 Switching Protocols (6ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[wrangler:info] GET /api/new-room 200 OK (15ms)
+[wrangler:info] GET /ws/planes/pr75 101 Switching Protocols (5ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[wrangler:info] GET /api/new-room 200 OK (16ms)
+[wrangler:info] GET /ws/planes/pj86 101 Switching Protocols (6ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[wrangler:info] GET /api/new-room 200 OK (12ms)
+[wrangler:info] GET /ws/planes/pq65 101 Switching Protocols (7ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[wrangler:info] GET /ws/planes/pq65 101 Switching Protocols (28ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') Error[0m
+
+      at pubGame (file:///home/z/my-project/fxq-cf/src/planes-room.js:166:20)
+      at handleJoin (file:///home/z/my-project/fxq-cf/src/planes-room.js:98:40)
+      at webSocketMessage (file:///home/z/my-project/fxq-cf/src/planes-room.js:50:25)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mUncaught TypeError: Cannot read properties of null (reading 'winner') [0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 1 error:[0m
+
+  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./planes-room.js"[0m
+  
+      src/index.js:5:29:
+  [37m      5 │ import { PlanesRoomDO } from [32m'./planes-room.js'[37m;
+          ╵                              [32m~~~~~~~~~~~~~~~~~~[0m
+  
+  
+
+
+⎔ Reloading local server...
+⎔ Local server updated and ready
+[wrangler:info] GET /api/new-room 200 OK (23ms)
+[wrangler:info] GET /ws/planes/pb55 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/planes/pb55 101 Switching Protocols (26ms)
+[wrangler:info] GET /api/new-room 200 OK (15ms)
+[wrangler:info] GET /ws/planes/pa34 101 Switching Protocols (6ms)
+[wrangler:info] GET /ws/planes/pa34 101 Switching Protocols (31ms)
+[wrangler:info] GET /api/new-room 200 OK (17ms)
+[wrangler:info] GET /ws/planes/pc64 101 Switching Protocols (10ms)
+[wrangler:info] GET /ws/planes/pc64 101 Switching Protocols (23ms)
+[wrangler:info] GET /api/new-room 200 OK (16ms)
+[wrangler:info] GET /ws/planes/pn37 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/planes/pn37 101 Switching Protocols (59ms)
+[wrangler:info] GET /api/new-room 200 OK (16ms)
+[wrangler:info] GET /ws/planes/pu89 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/planes/pu89 101 Switching Protocols (20ms)
+[wrangler:info] GET /api/new-room 200 OK (12ms)
+[wrangler:info] GET /ws/planes/pz69 101 Switching Protocols (6ms)
+[wrangler:info] GET /ws/planes/pz69 101 Switching Protocols (26ms)
+[wrangler:info] GET /api/new-room 200 OK (15ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/planes/px83 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/planes/px83 101 Switching Protocols (32ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/planes/pa82 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/planes/pa82 101 Switching Protocols (38ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/planes/pm79 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/planes/pm79 101 Switching Protocols (19ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/planes/pj22 101 Switching Protocols (17ms)
+[wrangler:info] GET /ws/planes/pj22 101 Switching Protocols (33ms)
+[wrangler:info] GET /api/new-room 200 OK (13ms)
+[wrangler:info] GET /ws/planes/pz77 101 Switching Protocols (8ms)
+[wrangler:info] GET /ws/planes/pz77 101 Switching Protocols (30ms)
+[wrangler:info] GET /api/new-room 200 OK (24ms)
+[wrangler:info] GET /ws/planes/pc76 101 Switching Protocols (7ms)
+[wrangler:info] GET /ws/planes/pc76 101 Switching Protocols (18ms)
+[wrangler:info] GET /api/new-room 200 OK (14ms)
+[wrangler:info] GET /ws/planes/pc72 101 Switching Protocols (9ms)
+[wrangler:info] GET /ws/planes/pc72 101 Switching Protocols (21ms)
+[wrangler:info] GET /uno 307 Temporary Redirect (30ms)
+[wrangler:info] GET /uno/ 200 OK (20ms)
+[wrangler:info] GET /uno/uno.js 200 OK (23ms)
+[wrangler:info] GET /api/new-room 200 OK (22ms)
+[wrangler:info] GET /uno 307 Temporary Redirect (10ms)
+[wrangler:info] GET /uno/ 200 OK (6ms)
+[wrangler:info] GET /uno/uno.js 304 Not Modified (10ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (11ms)
+[wrangler:info] GET /uno 307 Temporary Redirect (24ms)
+[wrangler:info] GET /uno/ 200 OK (49ms)
+[wrangler:info] GET /uno/uno.js 200 OK (42ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (17ms)
+⎔ Reloading local server...
+⎔ Local server updated and ready
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (18ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (21ms)
+[wrangler:info] GET /uno 307 Temporary Redirect (34ms)
+[wrangler:info] GET /uno/ 200 OK (9ms)
+[wrangler:info] GET /uno/uno.js 304 Not Modified (32ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (17ms)
+⎔ Reloading local server...
+⎔ Local server updated and ready
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (19ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (22ms)
+⎔ Reloading local server...
+⎔ Local server updated and ready
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (16ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (21ms)
+[wrangler:info] GET /uno/ 304 Not Modified (14ms)
+[wrangler:info] GET /uno/uno.js 200 OK (43ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (10ms)
+⎔ Reloading local server...
+⎔ Local server updated and ready
+[wrangler:info] GET /uno/ 200 OK (432ms)
+[wrangler:info] GET /uno/uno.js 200 OK (15ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (26ms)
+[wrangler:info] GET /ws/uno/ur75 101 Switching Protocols (6ms)
+[wrangler:info] GET /planes 307 Temporary Redirect (18ms)
+[wrangler:info] GET /planes/ 200 OK (7ms)
+[wrangler:info] GET /planes/planes.js 200 OK (27ms)
+[wrangler:info] GET /ws/planes/ptes 101 Switching Protocols (41ms)

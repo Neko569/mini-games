@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>UNO · 游戏厅</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+<style>
+  :root { --bg:#0f1420; --panel:#1a2233; --text:#e8ecf4; --muted:#8b97ad; --accent:#4f8cff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,"PingFang SC",sans-serif; min-height:100vh; }
+  .hidden { display:none !important; }
+  #lobby { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .lobby-card { background:var(--panel); border-radius:16px; padding:36px 32px; width:min(92vw,380px); text-align:center; }
+  .lobby-card h1 { font-size:28px; margin-bottom:16px; }
+  .lobby-card input { width:100%; padding:10px; border-radius:8px; border:1px solid #2a3a52; background:#0f1420; color:var(--text); margin:6px 0; font-size:15px; }
+  .row { display:flex; gap:10px; margin-top:10px; }
+  .btn { background:var(--accent); color:#fff; border:none; padding:10px 18px; border-radius:8px; font-size:14px; cursor:pointer; }
+  .btn.ghost { background:transparent; border:1px solid #2a3a52; color:var(--muted); }
+  header { display:flex; align-items:center; gap:14px; padding:12px 16px; background:var(--panel); }
+  header .code { font-family:monospace; letter-spacing:3px; color:#ffd54a; cursor:pointer; font-weight:700; }
+  header .spacer { flex:1; }
+  main { max-width:860px; margin:0 auto; padding:14px; }
+  .pl { display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--panel); border-radius:8px; margin-bottom:6px; font-size:14px; }
+  .pl .cnt { margin-left:auto; font-weight:700; color:#ffd54a; }
+  .pl.active { outline:2px solid var(--accent); }
+  .pl.off { opacity:.45; }
+  .table { display:flex; align-items:center; gap:18px; justify-content:center; margin:16px 0; }
+  .pile { width:74px; height:108px; border-radius:10px; background:#e8e8e8; color:#111; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:800; border:4px solid #fff; box-shadow:0 4px 14px rgba(0,0,0,.4); }
+  .pile.back { background:repeating-linear-gradient(45deg,#c62828,#c62828 8px,#1565c0 8px,#1565c0 16px); color:transparent; cursor:pointer; }
+  .side { text-align:center; color:var(--muted); font-size:13px; }
+  #curcolor { width:34px; height:34px; border-radius:50%; margin:6px auto; border:3px solid #fff2; }
+  .turn-banner { text-align:center; padding:8px; font-size:15px; font-weight:600; }
+  .colorpick { display:flex; gap:12px; justify-content:center; padding:10px; }
+  .cbtn { width:44px; height:44px; border-radius:50%; cursor:pointer; border:3px solid #fff2; }
+  .hand { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; min-height:120px; padding:8px; }
+  .ucard { width:62px; height:90px; border-radius:9px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:24px; color:#fff; cursor:pointer; border:3px solid #fff; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+  .ucard small { font-size:12px; font-weight:400; }
+  .ucard.playable { outline:3px solid #ffd54a; transform:translateY(-6px); }
+  .winbox { text-align:center; font-size:22px; font-weight:800; padding:14px; color:#ffd54a; }
+  #chat-log { height:110px; overflow-y:auto; background:var(--panel); border-radius:10px; padding:8px; font-size:13px; line-height:1.5; margin-top:10px; }
+  .chatwrap { display:flex; gap:8px; margin-top:8px; }
+  .chatwrap input { flex:1; padding:8px; border-radius:8px; border:1px solid #2a3a52; background:#0f1420; color:var(--text); }
+  .toast { position:fixed; top:14%; left:50%; transform:translateX(-50%); background:#1a2740; padding:10px 20px; border-radius:10px; z-index:99; }
+  .toast.err { background:#7f1d1d; }
+</style>
+</head>
+<body>
+<div id="lobby" class="hidden">
+  <div class="lobby-card">
+    <h1>🃏 UNO</h1>
+    <input id="lobby-name" maxlength="16" placeholder="昵称">
+    <input id="join-code" maxlength="4" placeholder="房间号（加入用）" autocapitalize="off">
+    <div class="row">
+      <button class="btn" id="btn-create">创建房间</button>
+      <button class="btn ghost" id="btn-join">加入</button>
+    </div>
+    <div id="lobby-msg"></div>
+  </div>
+</div>
+<div id="game" class="hidden">
+  <header>
+    <span>🃏 UNO</span>
+    <span class="code" id="room-code" title="点击复制邀请链接"></span>
+    <span class="spacer"></span>
+    <button id="btn-start" class="btn hidden">开始游戏</button>
+    <button id="btn-leave" class="btn ghost">离开</button>
+  </header>
+  <main>
+    <div id="players"></div>
+    <div class="table">
+      <div class="pile back" id="deck" title="点击摸牌">UNO</div>
+      <div class="pile" id="top">?</div>
+      <div class="side">
+        <div>当前颜色</div>
+        <div id="curcolor">—</div>
+        <div id="penalty"></div>
+        <div id="dir"></div>
+      </div>
+    </div>
+    <div class="turn-banner" id="turn-banner"></div>
+    <div class="colorpick hidden" id="colorpick">
+      <div class="cbtn" data-c="R" style="background:#e53935"></div>
+      <div class="cbtn" data-c="Y" style="background:#fdd835"></div>
+      <div class="cbtn" data-c="G" style="background:#43a047"></div>
+      <div class="cbtn" data-c="B" style="background:#1e88e5"></div>
+    </div>
+    <div class="hand" id="hand"></div>
+    <div class="winbox hidden" id="winbox"></div>
+    <div id="chat-log"></div>
+    <div class="chatwrap">
+      <input id="chat-input" maxlength="200" placeholder="聊天…">
+      <button class="btn" id="btn-chat">发</button>
+    </div>
+  </main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script type="module" src="./uno.js"></script>
+</body>
+</html>

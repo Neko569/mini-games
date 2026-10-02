@@ -66,6 +66,8 @@ localStorage.setItem('fxq_profile', JSON.stringify(profile));
 const GAMES = [
   { id: 'fxq', icon: '✈️', name: '飞行棋', desc: '4 人经典对战 · 掷骰起飞 · 撞机回跳', path: '/fxq' },
   { id: 'gobang', icon: '⚫', name: '五子棋', desc: '2 人对弈 · 15 路棋盘 · 五连即胜', path: '/gobang' },
+  { id: 'uno', icon: '🃏', name: 'UNO', desc: '经典 108 张 · 2-6 人 · 罚牌/万能牌全支持', path: '/uno' },
+  { id: 'planes', icon: '🛩️', name: '炸飞机', desc: '10×10 布阵对轰 · 炸中机头击落 · 3 架全灭判负', path: '/planes' },
 ];
 
 document.getElementById('games').innerHTML = GAMES.map(g => `
@@ -95,7 +97,8 @@ document.getElementById('btn-join').onclick = async () => {
   profile.name = document.getElementById('lobby-name').value.slice(0, 16) || '玩家';
   localStorage.setItem('fxq_profile', JSON.stringify(profile));
   // 按首字母路由游戏类型
-  const game = code[0] === 'g' ? 'gobang' : 'fxq';
+  const PG = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes' };
+  const game = PG[code[0]] || 'fxq';
   const info = await fetch('/api/room-info?code=' + code).then(r => r.json()).catch(() => null);
   if (!info || info.error) { msg.textContent = '房间不存在或已过期'; return; }
   const path = GAMES.find(g => g.id === info.game).path;

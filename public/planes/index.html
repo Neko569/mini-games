@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>炸飞机 · 游戏厅</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<style>
+  :root { --bg:#0f1420; --panel:#1a2233; --text:#e8ecf4; --muted:#8b97ad; --accent:#4f8cff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,"PingFang SC",sans-serif; min-height:100vh; }
+  .hidden { display:none !important; }
+  #lobby { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .lobby-card { background:var(--panel); border-radius:16px; padding:36px 32px; width:min(92vw,380px); text-align:center; }
+  .lobby-card h1 { font-size:28px; margin-bottom:16px; }
+  .lobby-card input { width:100%; padding:10px; border-radius:8px; border:1px solid #2a3a52; background:#0f1420; color:var(--text); margin:6px 0; font-size:15px; }
+  .row { display:flex; gap:10px; margin-top:10px; justify-content:center; }
+  .btn { padding:10px 16px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer; }
+  .btn.ghost { background:transparent; border:1px solid #2a3a52; color:var(--muted); }
+  #lobby-msg { color:#ff8a80; font-size:13px; min-height:18px; margin-top:8px; }
+  header { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--panel); }
+  header .code { font-family:monospace; letter-spacing:2px; color:#ffd54a; cursor:pointer; }
+  header .spacer { flex:1; }
+  main { max-width:900px; margin:0 auto; padding:10px; }
+  .banner { text-align:center; padding:8px; font-size:15px; color:var(--accent); }
+  .banner.mine { color:#ffd54a; font-weight:700; }
+  .grids { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .gwrap { text-align:center; }
+  .gtitle { font-size:13px; color:var(--muted); margin-bottom:4px; }
+  canvas { border-radius:8px; touch-action:manipulation; }
+  .tools { display:flex; gap:8px; justify-content:center; align-items:center; margin:8px 0; flex-wrap:wrap; }
+  .rot { padding:6px 12px; border-radius:6px; border:1px solid #2a3a52; background:var(--panel); color:var(--text); cursor:pointer; font-size:14px; }
+  .rot.sel { border-color:#ffd54a; color:#ffd54a; }
+  #chat-log { height:100px; overflow-y:auto; background:var(--panel); border-radius:10px; padding:8px; font-size:13px; line-height:1.5; max-width:700px; margin:8px auto 0; }
+  .chatwrap { display:flex; gap:8px; max-width:700px; margin:8px auto; }
+  .chatwrap input { flex:1; padding:8px; border-radius:8px; border:1px solid #2a3a52; background:#0f1420; color:var(--text); }
+  .toast { position:fixed; top:16%; left:50%; transform:translateX(-50%); z-index:99; background:#1a2740; color:#fff; padding:9px 18px; border-radius:8px; font-size:14px; }
+  .toast.err { background:#7f1d1d; }
+</style>
+</head>
+<body>
+<div id="lobby">
+  <div class="lobby-card">
+    <h1>🛩️ 炸飞机</h1>
+    <input id="lobby-name" maxlength="16" placeholder="昵称">
+    <input id="join-code" maxlength="4" placeholder="房间号（加入用）" autocapitalize="off">
+    <div class="row">
+      <button class="btn" id="btn-create">创建房间</button>
+      <button class="btn ghost" id="btn-join">加入</button>
+    </div>
+    <div id="lobby-msg"></div>
+  </div>
+</div>
+<div id="game" class="hidden">
+  <header>
+    <span style="font-weight:700">🛩️ 炸飞机</span>
+    <span class="code" id="room-code" title="复制邀请链接"></span>
+    <span class="spacer"></span>
+    <button class="btn ghost" id="btn-leave">离开</button>
+  </header>
+  <main>
+    <div class="banner" id="banner"></div>
+    <div class="tools" id="place-tools">
+      <button class="rot sel" data-r="0">↑机头朝上</button>
+      <button class="rot" data-r="1">→朝右</button>
+      <button class="rot" data-r="2">↓朝下</button>
+      <button class="rot" data-r="3">←朝左</button>
+      <button class="rot" id="btn-reset">重摆</button>
+      <button class="btn hidden" id="btn-confirm">确认布阵</button>
+    </div>
+    <div class="grids">
+      <div class="gwrap"><div class="gtitle">我的领空（绿=机头）</div><canvas id="mine" width="300" height="300"></canvas></div>
+      <div class="gwrap"><div class="gtitle">敌方领空</div><canvas id="enemy" width="300" height="300"></canvas></div>
+    </div>
+    <div id="chat-log"></div>
+    <div class="chatwrap">
+      <input id="chat-input" maxlength="200" placeholder="聊天…">
+      <button class="btn" id="btn-chat">发</button>
+    </div>
+  </main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script type="module" src="./planes.js"></script>
+</body>
+</html>
