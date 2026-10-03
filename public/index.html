@@ -69,6 +69,7 @@ const GAMES = [
   { id: 'uno', icon: '🃏', name: 'UNO', desc: '经典 108 张 · 2-6 人 · 罚牌/万能牌全支持', path: '/uno' },
   { id: 'planes', icon: '🛩️', name: '炸飞机', desc: '10×10 布阵对轰 · 炸中机头击落 · 3 架全灭判负', path: '/planes' },
   { id: 'davinci', icon: '🔐', name: '达芬奇密码', desc: '猜牌推理 · 2-4 人 · 猜中连猜 · 暗牌清零出局', path: '/davinci' },
+  { id: 'kittens', icon: '💥', name: '爆炸猫', desc: '抽到炸弹就爆 · 拆弹/否决/攻击 · 2-5 人 · 活到最后', path: '/kittens' },
 ];
 
 document.getElementById('games').innerHTML = GAMES.map(g => `
@@ -98,7 +99,7 @@ document.getElementById('btn-join').onclick = async () => {
   profile.name = document.getElementById('lobby-name').value.slice(0, 16) || '玩家';
   localStorage.setItem('fxq_profile', JSON.stringify(profile));
   // 按首字母路由游戏类型
-  const PG = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci' };
+  const PG = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens' };
   const game = PG[code[0]] || 'fxq';
   const info = await fetch('/api/room-info?code=' + code).then(r => r.json()).catch(() => null);
   if (!info || info.error) { msg.textContent = '房间不存在或已过期'; return; }

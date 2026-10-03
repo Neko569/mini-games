@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>爆炸猫 · 游戏厅</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💥</text></svg>">
+<style>
+  :root { --bg:#0f1420; --panel:#1a2233; --text:#e8ecf4; --muted:#8b97ad; --accent:#ff7a45; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,"PingFang SC",sans-serif; min-height:100vh; }
+  .hidden { display:none !important; }
+  #lobby { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .lobby-card { background:var(--panel); border-radius:16px; padding:36px 32px; width:min(92vw,380px); text-align:center; }
+  .lobby-card h1 { font-size:28px; margin-bottom:16px; }
+  .lobby-card input { width:100%; padding:10px; border-radius:8px; border:1px solid #2a3a52; background:#0f1420; color:var(--text); margin:6px 0; font-size:15px; }
+  .row { display:flex; gap:10px; margin-top:10px; }
+  .btn { background:var(--accent); color:#fff; border:none; padding:10px 18px; border-radius:8px; font-size:14px; cursor:pointer; }
+  .btn.ghost { background:transparent; border:1px solid #2a3a52; color:var(--muted); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  header { display:flex; align-items:center; gap:14px; padding:12px 16px; background:var(--panel); }
+  header .code { font-family:monospace; letter-spacing:3px; color:#ffd54a; cursor:pointer; font-weight:700; }
+  header .spacer { flex:1; }
+  main { max-width:860px; margin:0 auto; padding:14px; }
+  .opp { background:var(--panel); border-radius:10px; padding:8px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+  .opp.active { outline:2px solid var(--accent); }
+  .opp.dead { opacity:.4; }
+  .opp .nm { font-size:14px; }
+  .opp .info { color:var(--muted); font-size:12px; margin-left:auto; }
+  .banner { text-align:center; padding:8px; font-size:15px; font-weight:600; }
+  .banner.me { color:#ffd54a; }
+  .toolbar { display:flex; gap:8px; margin:10px 0; flex-wrap:wrap; align-items:center; }
+  .hand .label, .opps .label { color:var(--muted); font-size:12px; margin-bottom:6px; }
+  .card { min-width:52px; height:72px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; border:2px solid #333; padding:0 6px; text-align:center; flex-direction:column; gap:2px; }
+  .card .em { font-size:22px; }
+  .card.sel { outline:3px solid #ffd54a; cursor:pointer; }
+  .card.hand { cursor:default; background:#243049; }
+  .card.hand.playable { cursor:pointer; border-color:#5a6c8c; }
+  #mycards { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .pend { background:#2a1f33; border:1px solid #6b4a8c; border-radius:10px; padding:10px 12px; margin:10px 0; display:flex; align-items:center; gap:10px; }
+  .pend b { color:#c792ea; }
+  .pend .ttl { margin-left:auto; font-family:monospace; color:#ffd54a; }
+  .winbox { text-align:center; font-size:22px; font-weight:800; padding:14px; color:#ffd54a; }
+  #chat-log { height:120px; overflow-y:auto; background:var(--panel); border-radius:10px; padding:8px; font-size:13px; line-height:1.5; margin-top:10px; }
+  .chatwrap { display:flex; gap:8px; margin-top:8px; }
+  .chatwrap input { flex:1; padding:8px; border-radius:8px; border:1px solid #2a3a52; background:#0f1420; color:var(--text); }
+  .toast { position:fixed; top:14%; left:50%; transform:translateX(-50%); background:#1a2740; padding:10px 20px; border-radius:10px; z-index:99; }
+  .toast.err { background:#7f1d1d; }
+  .peek { background:var(--panel); border-radius:10px; padding:10px; margin:8px 0; font-size:13px; }
+</style>
+</head>
+<body>
+<div id="lobby" class="hidden">
+  <div class="lobby-card">
+    <h1>💥 爆炸猫</h1>
+    <input id="lobby-name" maxlength="16" placeholder="昵称">
+    <input id="join-code" maxlength="4" placeholder="房间号（加入用）" autocapitalize="off">
+    <div class="row">
+      <button class="btn" id="btn-create">创建房间</button>
+      <button class="btn ghost" id="btn-join">加入</button>
+    </div>
+    <div id="lobby-msg"></div>
+  </div>
+</div>
+<div id="game" class="hidden">
+  <header>
+    <span>💥 爆炸猫</span>
+    <span class="code" id="room-code" title="点击复制邀请链接"></span>
+    <span class="spacer"></span>
+    <button id="btn-start" class="btn hidden">开始游戏</button>
+    <button id="btn-leave" class="btn ghost">离开</button>
+  </header>
+  <main>
+    <div class="banner" id="banner"></div>
+    <div class="opps" id="opps"></div>
+    <div class="pend hidden" id="pend"></div>
+    <div class="peek hidden" id="peek"></div>
+    <div class="toolbar">
+      <button class="btn" id="btn-draw" disabled>🃏 摸牌</button>
+      <span style="color:var(--muted);font-size:13px" id="deckinfo"></span>
+    </div>
+    <div class="hand">
+      <div class="label">我的手牌（点击亮出的动作牌打出）</div>
+      <div id="mycards"></div>
+    </div>
+    <div class="winbox hidden" id="winbox"></div>
+    <div id="chat-log"></div>
+    <div class="chatwrap">
+      <input id="chat-input" maxlength="200" placeholder="聊天…">
+      <button class="btn" id="btn-chat">发</button>
+    </div>
+  </main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script type="module" src="./kittens.js"></script>
+</body>
+</html>
