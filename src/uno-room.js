@@ -1,4 +1,5 @@
 // Durable Object: UNO 房间（2-6 人，SQLite 持久化 + WS Hibernation）
+import { reportResult } from './stats-report.js';
 import { newGame, play, drawCards, mustDraw, CNAME } from './uno.js';
 
 export class UnoRoomDO {
@@ -126,6 +127,7 @@ export class UnoRoomDO {
       r.started = 'over';
       this.saveRoom();
       this._broadcast({ t: 'finished', winner: r.game.winner, pub: this.pubView(), room: this.roomView() });
+      reportResult(this.env, 'uno', this.room.seats, r.winners);
       return;
     }
     this.saveRoom();

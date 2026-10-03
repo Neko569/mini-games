@@ -1,4 +1,5 @@
 // Durable Object: 五子棋房间（2 人对坐 + 观战，SQLite 持久化 + WS Hibernation）
+import { reportResult } from './stats-report.js';
 import { newGame, place } from './gobang.js';
 
 const COLORS = ['#1a1a1a', '#f5f5f5']; // 黑 白
@@ -148,6 +149,7 @@ export class GobangRoomDO {
       r.started = 'over';
       this.saveRoom();
       this._broadcast({ t: 'finished', winner: r.game.winner, game: r.game, room: this.roomView() });
+      reportResult(this.env, 'gobang', this.room.seats, r.winners);
       return;
     }
     this.saveRoom();

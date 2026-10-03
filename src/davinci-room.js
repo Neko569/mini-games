@@ -1,4 +1,5 @@
 // Durable Object: 达芬奇密码房间（2-4 人推理）
+import { reportResult } from './stats-report.js';
 import { newGame, draw, guess, discard, faceDownCount } from './davinci.js';
 
 export class DavinciRoomDO {
@@ -141,6 +142,7 @@ export class DavinciRoomDO {
       r.started = 'over';
       this.saveRoom();
       this._broadcast({ t: 'finished', winner: r.game.winner, pub: this.pubView(), room: this.roomView() });
+      reportResult(this.env, 'davinci', this.room.seats, r.winners);
     }
   }
 
@@ -157,6 +159,7 @@ export class DavinciRoomDO {
       r.started = 'over';
       this.saveRoom();
       this._broadcast({ t: 'finished', winner: r.game.winner, pub: this.pubView(), room: this.roomView() });
+      reportResult(this.env, 'davinci', this.room.seats, r.winners);
     }
   }
 

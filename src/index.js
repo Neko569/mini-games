@@ -5,8 +5,9 @@ import { UnoRoomDO } from './uno-room.js';
 import { PlanesRoomDO } from './planes-room.js';
 import { DavinciRoomDO } from './davinci-room.js';
 import { KittensRoomDO } from './kittens-room.js';
+import { StatsDO } from './stats.js';
 
-export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO };
+export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO, StatsDO };
 
 // 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
 const GAMES = {
@@ -76,7 +77,12 @@ export default {
     }
 
     // WS 升级：/ws/{game}/{code}
-    const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes|davinci|kittens)\/([a-z0-9]{4})$/i);
+    if (url.pathname === '/api/stats') {
+    const stub = env.STATS.get(env.STATS.idFromName('global'));
+    const inner = req.method === 'POST' ? 'https://stats/record' : 'https://stats/query' + url.search;
+    return stub.fetch(inner, req.method === 'POST' ? req : undefined);
+  }
+  const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes|davinci|kittens)\/([a-z0-9]{4})$/i);
     if (m) {
       const game = m[1].toLowerCase();
       const code = m[2].toLowerCase();

@@ -34,6 +34,10 @@ class_name = "DavinciRoomDO"
 name = "KITTENS"
 class_name = "KittensRoomDO"
 
+[[durable_objects.bindings]]
+name = "STATS"
+class_name = "StatsDO"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RoomDO"]
@@ -53,6 +57,10 @@ new_sqlite_classes = ["DavinciRoomDO"]
 [[migrations]]
 tag = "v5"
 new_sqlite_classes = ["KittensRoomDO"]
+
+[[migrations]]
+tag = "v6"
+new_sqlite_classes = ["StatsDO"]
 
 # 部署后绑定自定义域名（部署前保持注释）：
 # routes = [

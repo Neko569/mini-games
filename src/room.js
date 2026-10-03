@@ -1,4 +1,5 @@
 // Durable Object: 一个房间 = 一个 DO（状态持久化 + WebSocket Hibernation）
+import { reportResult } from './stats-report.js';
 import { initGame, rollDice, movePlane, penalty, movablePlanes } from './engine.js';
 
 const COLORS = ['#f43f5e', '#3b82f6', '#22c55e', '#eab308']; // 红蓝绿黄
@@ -257,6 +258,7 @@ export class RoomDO {
       r.winners = r.game.winners;
       this.saveRoom();
       this._broadcast({ t: 'finished', winners: r.game.winners, game: r.game, room: this.roomView() });
+      reportResult(this.env, 'fxq', this.room.seats, r.winners);
       return;
     }
     this.saveRoom();

@@ -45,6 +45,8 @@
 
   <div class="games" id="games"></div>
 
+  <div class="stats" id="stats" style="margin:24px 0"></div>
+
   <div class="join">
     <h2>加入房间</h2>
     <div class="row">
@@ -91,6 +93,34 @@ document.getElementById('games').addEventListener('click', async (e) => {
   const r = await fetch('/api/new-room?game=' + btn.dataset.game).then(r => r.json());
   location.href = btn.dataset.path + '?room=' + r.code;
 });
+
+// 战绩面板
+const GAME_CN = { fxq: '✈️飞行棋', gobang: '⚫五子棋', uno: '🃏UNO', planes: '🛩️炸飞机', davinci: '🔐达芬奇密码', kittens: '💥爆炸猫' };
+(async () => {
+  try {
+    const [mine, top] = await Promise.all([
+      fetch('/api/stats?gid=' + profile.gid).then(r => r.json()).catch(() => ({})),
+      fetch('/api/stats').then(r => r.json()).catch(() => ({})),
+    ]);
+    const el = document.getElementById('stats');
+    if (!mine.mine?.length && !top.top?.length) return;
+    let html = '<h2 style="font-size:16px;margin-bottom:10px">🏆 战绩</h2>';
+    if (mine.mine?.length) {
+      html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
+        mine.mine.map(m => `<span style="background:var(--panel);border-radius:8px;padding:6px 10px;font-size:13px">${GAME_CN[m.game] || m.game} ${m.n}战${m.w}胜</span>`).join('') + '</div>';
+    }
+    if (top.top?.length) {
+      const byGame = {};
+      top.top.forEach(r => { (byGame[r.game] = byGame[r.game] || []).push(r); });
+      html += '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">各游戏榜首</div>';
+      html += '<div style="display:flex;gap:8px;flex-wrap:wrap">' + Object.entries(byGame).map(([g, rows]) => {
+        const t3 = rows.slice(0, 3).map((r, i) => `${['🥇','🥈','🥉'][i]} ${r.name} ${r.w}胜`).join(' ');
+        return `<span style="background:var(--panel);border-radius:8px;padding:6px 10px;font-size:13px">${GAME_CN[g] || g}：${t3}</span>`;
+      }).join('') + '</div>';
+    }
+    el.innerHTML = html;
+  } catch {}
+})();
 
 document.getElementById('btn-join').onclick = async () => {
   const code = document.getElementById('join-code').value.trim().toLowerCase();

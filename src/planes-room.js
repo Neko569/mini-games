@@ -1,4 +1,5 @@
 // Durable Object: 炸飞机房间（2 人，布局阶段 + 交战阶段）
+import { reportResult } from './stats-report.js';
 import { newGame, place, strike, bothPlaced } from './planes.js';
 
 export class PlanesRoomDO {
@@ -153,7 +154,10 @@ export class PlanesRoomDO {
       winner: r.game.winner,
       phase: r.game.phase,
     });
-    if (r.game.winner !== null) this._broadcast({ t: 'finished', winner: r.game.winner });
+    if (r.game.winner !== null) {
+      this._broadcast({ t: 'finished', winner: r.game.winner });
+      reportResult(this.env, 'planes', this.room.seats, [r.game.winner]);
+    }
   }
 
   sendEachPrivate() {

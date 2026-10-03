@@ -1,4 +1,5 @@
 // Durable Object: 爆炸猫房间（2-5 人）
+import { reportResult } from './stats-report.js';
 import { newGame, draw, playAction, resolvePending, nope, give, resolveGiveTimeout, peekTop, WINDOW_MS, GIVE_MS } from './kittens.js';
 
 export class KittensRoomDO {
@@ -213,6 +214,7 @@ export class KittensRoomDO {
       r.started = 'over';
       this.saveRoom();
       this._broadcast({ t: 'finished', winner: r.game.winner, pub: this.pubView(), room: this.roomView() });
+      reportResult(this.env, 'kittens', this.room.seats, r.winners);
     }
   }
 
