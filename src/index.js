@@ -6,8 +6,9 @@ import { PlanesRoomDO } from './planes-room.js';
 import { DavinciRoomDO } from './davinci-room.js';
 import { KittensRoomDO } from './kittens-room.js';
 import { StatsDO } from './stats.js';
+import { ReversiRoomDO } from './reversi-room.js';
 
-export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO, StatsDO };
+export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO, StatsDO, ReversiRoomDO };
 
 // 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
 const GAMES = {
@@ -17,6 +18,7 @@ const GAMES = {
   planes: { cls: 'PLANES',  prefix: 'p', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
   davinci: { cls: 'DAVINCI', prefix: 'd', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
   kittens: { cls: 'KITTENS', prefix: 'k', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
+  reversi: { cls: 'REVERSI', prefix: 'r', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
 };
 
 function genRoomCode(cfg) {
@@ -69,7 +71,7 @@ export default {
     if (url.pathname === '/api/room-info') {
       const code = (url.searchParams.get('code') || '').toLowerCase();
       if (!/^[a-z0-9]{4}$/.test(code)) return Response.json({ error: 'code' }, { status: 400, headers: CORS });
-      const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens' };
+      const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens', r: 'reversi' };
       const game = PREFIX_GAME[code[0]] || 'fxq';
       const resp = await (await gameDO(env, game, code)).fetch('https://do/probe');
       const j = await resp.json();
@@ -82,7 +84,7 @@ export default {
     const inner = req.method === 'POST' ? 'https://stats/record' : 'https://stats/query' + url.search;
     return stub.fetch(inner, req.method === 'POST' ? req : undefined);
   }
-  const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes|davinci|kittens)\/([a-z0-9]{4})$/i);
+  const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes|davinci|kittens|reversi)\/([a-z0-9]{4})$/i);
     if (m) {
       const game = m[1].toLowerCase();
       const code = m[2].toLowerCase();

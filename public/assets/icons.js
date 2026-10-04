@@ -148,3 +148,13 @@ export function avatarURI(gid, name = '') {
 export const svgStone = (w = 14, black = true) => H(w, black
   ? `<circle cx="12" cy="12" r="9" fill="#1a1a1a"/><circle cx="9.5" cy="9.5" r="2.2" fill="#555"/>`
   : `<circle cx="12" cy="12" r="9" fill="#fff" stroke="#c8c8c8" stroke-width="1.2"/><circle cx="9.5" cy="9.5" r="2" fill="#eee"/>`);
+
+/* 黑白棋徽标 */
+export const EMBLEM_REVERSI = EM(`
+  <rect x="4" y="4" width="40" height="40" rx="6" fill="#1B5E20" stroke="#2E7D32" stroke-width="2"/>
+  <path d="M14 4v40M24 4v40M34 4v40M4 14h40M4 24h40M4 34h40" stroke="#2E7D32" stroke-width="1.2"/>
+  <circle cx="19" cy="19" r="7" fill="#111"/><circle cx="16.5" cy="16.5" r="1.8" fill="#444"/>
+  <circle cx="29" cy="29" r="7" fill="#fff" stroke="#c8c8c8" stroke-width="1"/><circle cx="26.5" cy="26.5" r="1.6" fill="#eee"/>
+  <circle cx="29" cy="19" r="2.4" fill="#fff" opacity=".85"/><circle cx="19" cy="29" r="2.4" fill="#111" opacity=".85"/>`);
+
+EMBLEM.reversi = EMBLEM_REVERSI;

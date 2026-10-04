@@ -1,5 +1,5 @@
 // StatsDO: 全局战绩单例（SQLite）
-const GAMES = ['fxq', 'gobang', 'uno', 'planes', 'davinci', 'kittens'];
+const GAMES = ['fxq', 'gobang', 'uno', 'planes', 'davinci', 'kittens', 'reversi'];
 
 export class StatsDO {
   constructor(state, env) {

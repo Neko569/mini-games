@@ -95,7 +95,7 @@ function renderPlayers() {
   $('#players').innerHTML = (players || []).map((p, i) => p ? `
     <div class="player ${p.connected ? '' : 'off'} ${i === mySeat ? 'me' : ''}">
       <span class="dot" style="background:${COLORS[i]};border:1px solid #555"></span>
-      <img class="pavatar" src="${avatarURI(p.gid || p.name || i, p.name)}" alt="">
+      <img class="pavatar" src="${p.avatar || avatarURI(p.gid || p.name || i, p.name)}" alt="" onerror="this.src=avatarURI(p.gid || p.name || i, p.name)">
       <span class="pname">${esc(p.name)}</span>
       ${p.owner ? '<span class="badge">房主</span>' : ''}
       <span class="conn">${p.connected ? CN[i] : CN[i] + '·离线'}</span>
@@ -249,4 +249,4 @@ $('#btn-join').onclick = () => {
   location.href = '/gobang?room=' + code;
 };
 $('#lobby-name').value = profile.name;
-if (document.getElementById('lobby-avatar')) document.getElementById('lobby-avatar').src = avatarURI(profile.gid, profile.name);
+if (document.getElementById('lobby-avatar')) document.getElementById('lobby-avatar').src = profile.avatar || avatarURI(profile.gid, profile.name);

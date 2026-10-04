@@ -73,6 +73,7 @@ const GAMES = [
   { id: 'planes', icon: '🛩️', name: '炸飞机', desc: '10×10 布阵对轰 · 炸中机头击落 · 3 架全灭判负', path: '/planes' },
   { id: 'davinci', icon: '🔐', name: '达芬奇密码', desc: '猜牌推理 · 2-4 人 · 猜中连猜 · 暗牌清零出局', path: '/davinci' },
   { id: 'kittens', icon: '💥', name: '爆炸猫', desc: '抽到炸弹就爆 · 拆弹/否决/攻击 · 2-5 人 · 活到最后', path: '/kittens' },
+  { id: 'reversi', icon: '⚫', name: '黑白棋', desc: '8×8 奥赛罗 · 夹住就翻子 · 2 人对弈 · 子多者胜', path: '/reversi' },
 ];
 
 document.getElementById('games').innerHTML = GAMES.map(g => `
@@ -83,7 +84,7 @@ document.getElementById('games').innerHTML = GAMES.map(g => `
     <div class="row"><button class="btn" data-game="${g.id}" data-path="${g.path}">创建房间</button></div>
   </div>`).join('');
 
-document.getElementById('avatar').src = avatarURI(profile.gid, profile.name);
+document.getElementById('avatar').src = profile.avatar || avatarURI(profile.gid, profile.name);
 document.getElementById('lobby-name').value = profile.name;
 
 document.getElementById('games').addEventListener('click', async (e) => {
@@ -96,7 +97,7 @@ document.getElementById('games').addEventListener('click', async (e) => {
 });
 
 // 战绩面板
-const GAME_CN = { fxq: '✈️飞行棋', gobang: '⚫五子棋', uno: '🃏UNO', planes: '🛩️炸飞机', davinci: '🔐达芬奇密码', kittens: '💥爆炸猫' };
+const GAME_CN = { fxq: '✈️飞行棋', gobang: '⚫五子棋', uno: '🃏UNO', planes: '🛩️炸飞机', davinci: '🔐达芬奇密码', kittens: '💥爆炸猫', reversi: '⚪黑白棋' };
 (async () => {
   try {
     const [mine, top] = await Promise.all([
@@ -130,7 +131,7 @@ document.getElementById('btn-join').onclick = async () => {
   profile.name = document.getElementById('lobby-name').value.slice(0, 16) || '玩家';
   localStorage.setItem('fxq_profile', JSON.stringify(profile));
   // 按首字母路由游戏类型
-  const PG = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens' };
+  const PG = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens', r: 'reversi' };
   const game = PG[code[0]] || 'fxq';
   const info = await fetch('/api/room-info?code=' + code).then(r => r.json()).catch(() => null);
   if (!info || info.error) { msg.textContent = '房间不存在或已过期'; return; }
