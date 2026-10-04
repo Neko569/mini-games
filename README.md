@@ -35,4 +35,4 @@ node test/e2e_reversi.mjs    # E2E（需 dev server 运行中）
 wrangler deploy
 ```
 
-或推送到 main 由 GitHub Actions 自动部署（需在仓库 Secrets 配置 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`）。
+本仓库已关联 Cloudflare Workers Builds，推送到 main 会自动部署。
