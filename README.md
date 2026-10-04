@@ -1,62 +1,38 @@
-# 🎮 游戏厅 — 自建对战平台（Cloudflare 免费版）
+# mini-games 🎲
 
-> 多游戏版：✈️ 飞行棋 + ⚫ 五子棋（新增），共用一套房间/身份/观战/断线重连基建。
-> 主入口 `/` 游戏厅；`/fxq`、`/gobang` 为各游戏页；房间号首字母标识游戏（f/g）。
+自建多人游戏平台，跑在 Cloudflare Workers + Durable Objects 上，零依赖原生 JS，7 个游戏：
 
-复刻 game.hullqin.cn 飞行棋体验：匿名房间、4 位房号、实时对战、观战、断线重连。
-规则引擎移植自官方前端（逻辑 100% 一致），棋盘渲染使用官方坐标函数。
+| 游戏 | 人数 | 特色 |
+|---|---|---|
+| ✈️ 飞行棋 | 2-4 | 经典对战，掷骰起飞 |
+| ⚫ 五子棋 | 2 | 15 路棋盘，断线重连 |
+| 🃏 UNO | 2-6 | 经典 108 张，罚牌/万能牌 |
+| 🛩️ 炸飞机 | 2 | 10×10 布阵对轰 |
+| 🔐 达芬奇密码 | 2-4 | 猜牌推理 |
+| 💥 爆炸猫 | 2-5 | 拆弹/否决/攻击 |
+| ⚪ 黑白棋 | 2 | 8×8 奥赛罗 |
 
-## 架构（全部 CF 免费额度）
+## 架构
 
-```
-Cloudflare Worker (路由 + 静态资源 + CORS/PNA)
-  ├── Durable Object RoomDO       飞行棋房间（1 房间 = 1 DO）
-  ├── Durable Object GobangRoomDO 五子棋房间
-  └── public/          前端（无构建）
-      ├── index.html   游戏厅主入口（游戏卡片 + 建房/加入）
-      ├── fxq/         飞行棋（官方规则引擎）
-      └── gobang/      五子棋（15 路无禁手，五连判定）
-```
-
-房间号 4 位，**首字母标识游戏**（f=飞行棋 g=五子棋），加入时按前缀自动路由到对应 DO。
-
-免费额度：10 万请求/天（含 WS 消息）≈ 每日 60-100 局活跃对局。
-
-## 部署
-
-```bash
-npm install                 # 装 wrangler
-npx wrangler login          # 或用 CLOUDFLARE_API_TOKEN
-# 编辑 wrangler.toml：解开 routes 注释，填你的域名
-npx wrangler deploy
-```
-
-绑定域名后 DNS 的 NS 托管到 Cloudflare 即可（免费版支持自定义域名）。
-GitHub CI：把 `CLOUDFLARE_API_TOKEN` 存进仓库 Secrets，push main 自动部署。
-
-## ZeroTalk 联动（油猴）
-
-`../fxq-bot/zerotalk-fxq-v3.user.js`：
-- 聊天里的 `/fxq 房间号` 自动渲染对局卡片
-- 悬浮球 ✈️ 一键建房 + 发邀请 + 开小窗
-- 自动带入 ZeroTalk 昵称与头像（URL 参数透传）
-- 装脚本前把 `GAME_ORIGIN` 改成你的域名
+- 每个游戏一个 **Durable Object** 房间（WebSocket hibernation + sqlite 持久化）
+- 房间号首字母路由游戏类型（f/g/u/p/d/k/r）
+- 全局 **StatsDO** 战绩统计（DO sqlite）
+- 大厅 + 房间号邀请 + 匿名开局 + 断线重连 + 房间 10 分钟无活动自动回收
+- 美术资源全部内联 SVG（`public/assets/icons.js`），无外部依赖
 
 ## 本地开发
 
 ```bash
-npx wrangler dev            # http://localhost:8787
+npm install
+wrangler dev        # http://localhost:8787
+node test/kittens.test.mjs   # 引擎单测
+node test/e2e_reversi.mjs    # E2E（需 dev server 运行中）
 ```
 
-## 协议（JSON over WebSocket）
+## 部署
 
+```bash
+wrangler deploy
 ```
-wss://host/ws/{房间号}?gid=&name=&avatar=
-→ {t:'join'}                入座（同 gid 重连回原座位；他人同 gid 连接会踢掉旧连接 close 4000）
-→ {t:'start'}               房主开局（≥2 人）
-→ {t:'roll'}                掷骰（state==自己）
-→ {t:'move', plane}         移动（state==4|自己 且 plane 在服务端 movable 白名单）
-← {t:'welcome'|'players'|'start'|'game'|'finished'|'chat'|'error'}
-```
-游戏状态：`{state, lastDice, sixTimes, winners, planePositionList[16], …}`
-`state` 0..n-1 = 轮到谁掷骰；4..4+n-1 = 轮到谁移动。三连 6 自动罚回。
+
+或推送到 main 由 GitHub Actions 自动部署（需在仓库 Secrets 配置 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`）。
