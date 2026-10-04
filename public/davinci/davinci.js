@@ -1,3 +1,4 @@
+import { svgTrophy, svgCrown, svgSpark, avatarURI } from '/assets/icons.js';
 /* 达芬奇密码客户端 */
 const $ = (s) => document.querySelector(s);
 const CC = { B: '#1a1a1a', W: '#eceff1', J: 'linear-gradient(135deg,#e53935,#1e88e5)' };
@@ -43,7 +44,7 @@ function handle(m) {
     case 'state': pub = m.pub; break;
     case 'finished':
       pub = m.pub;
-      $('#winbox').textContent = `🏆 ${name(m.winner)} 获胜！`;
+      $('#winbox').innerHTML = svgTrophy(26) + ' ' + esc(name(m.winner)) + ' 获胜！';
       $('#winbox').classList.remove('hidden');
       chatSys(`🏆 ${name(m.winner)} 获胜！`);
       break;
@@ -133,7 +134,7 @@ function renderAll() {
     const cells = p.revealed.map(c => `<div class="card revealed c${c.c}" title="${c.c === 'J' ? '万能' : CTX[c.c] + c.r}">${c.c === 'J' ? 'J' : c.r}</div>`).join('')
       + Array.from({ length: p.faceDown }, () => '<div class="card down"></div>').join('');
     opps.push(`<div class="opp ${pub.turn === i ? 'active' : ''} ${p.eliminated ? 'dead' : ''}" data-seat="${i}">
-      <div class="nm"><b>${esc(name(i))}</b>${players[i]?.owner ? '👑' : ''} ${p.eliminated ? '<span style="color:#e53935">已出局</span>' : ''}
+      <div class="nm"><b>${esc(name(i))}</b>${players[i]?.owner ? svgCrown(13) : ''} ${p.eliminated ? '<span style="color:#e53935">已出局</span>' : ''}
       <span style="color:var(--muted);font-size:12px;margin-left:auto">暗牌 ${p.faceDown}</span></div>
       <div class="cards">${cells || '<span style="color:var(--muted)">无牌</span>'}</div></div>`);
   });
@@ -152,7 +153,7 @@ function renderAll() {
   });
   // 我的牌
   $('#mycards').innerHTML = (hand || []).map(c => `
-    <div class="card ${c.revealed ? 'revealed' : 'down mine'} c${c.c}" data-uid="${c.uid}" title="${c.revealed ? '明牌' : '暗牌(仅自己可见)'}">${c.c === 'J' ? 'J' : c.r}${c.fresh ? ' ✨' : ''}</div>`).join('');
+    <div class="card ${c.revealed ? 'revealed' : 'down mine'} c${c.c}" data-uid="${c.uid}" title="${c.revealed ? '明牌' : '暗牌(仅自己可见)'}">${c.c === 'J' ? 'J' : c.r}${c.fresh ? svgSpark(12) : ''}</div>`).join('');
   $('#mycards').querySelectorAll('.card.down').forEach(el => {
     el.onclick = () => {
       if (!myTurn || pub.winner !== null) return;
@@ -183,7 +184,7 @@ function chatSys(text) {
   const log = $('#chat-log'); log.appendChild(d); log.scrollTop = log.scrollHeight;
 }
 function showWin(n) {
-  $('#winbox').textContent = `🏆 ${n} 获胜！`;
+  $('#winbox').innerHTML = svgTrophy(26) + ' ' + esc(n) + ' 获胜！';
   $('#winbox').classList.remove('hidden');
 }
 window.__dbg = () => ({ mySeat, pub, hand });

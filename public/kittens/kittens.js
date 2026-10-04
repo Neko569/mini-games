@@ -1,4 +1,5 @@
 /* 爆炸猫客户端 */
+import { KCARD, svgTrophy, avatarURI } from '/assets/icons.js';
 const $ = (s) => document.querySelector(s);
 const KIND = {
   boom:   { n: '爆炸猫', em: '💥' }, defuse: { n: '拆弹', em: '🧰' },
@@ -47,12 +48,12 @@ function handle(m) {
     case 'state': pub = m.pub; break;
     case 'peek':
       const p = $('#peek');
-      p.innerHTML = '🔮 牌堆顶 3 张：<b>' + m.cards.map(k => KIND[k].em + KIND[k].n).join('、') + '</b>';
+      p.innerHTML = '🔮 牌堆顶 3 张：<b>' + m.cards.map(k => KCARD[k].replace('width="24" height="24"', 'width="17" height="17" style="vertical-align:-3px"') + KIND[k].n).join('、') + '</b>';
       p.classList.remove('hidden');
       break;
     case 'finished':
       pub = m.pub;
-      $('#winbox').textContent = `🏆 ${name(m.winner)} 获胜！`;
+      $('#winbox').innerHTML = svgTrophy(26) + ' ' + esc(name(m.winner)) + ' 获胜！';
       $('#winbox').classList.remove('hidden');
       chatSys(`🏆 ${name(m.winner)} 获胜！`);
       break;
@@ -105,17 +106,17 @@ function renderAll() {
   else if (myTurn) {
     bn.textContent = pub.drawsLeft > 1 ? `轮到你（还需摸 ${pub.drawsLeft} 张）` : '轮到你：可出动作牌，或直接摸牌';
     bn.classList.add('me');
-  } else if (pub.pending) { bn.textContent = `${name(pub.pending.by)} 打出了「${KIND[pub.pending.type].n}」…`; bn.classList.remove('me'); }
+  } else if (pub.pending) { bn.innerHTML = KCARD[pub.pending.type].replace('width="24" height="24"', 'width="17" height="17" style="vertical-align:-3px"') + ' ' + esc(name(pub.pending.by)) + ' 打出了「' + KIND[pub.pending.type].n + '」…'; bn.classList.remove('me'); }
   else { bn.textContent = `等待 ${name(pub.turn)} 行动…`; bn.classList.remove('me'); }
 
-  $('#deckinfo').textContent = `牌堆 ${pub.deckLeft} 张` + (pub.discardTop ? ` · 弃牌顶: ${KIND[pub.discardTop].em}${KIND[pub.discardTop].n}` : '');
+  $('#deckinfo').innerHTML = `牌堆 ${pub.deckLeft} 张` + (pub.discardTop ? ` · 弃牌顶: ${KCARD[pub.discardTop].replace('width="24" height="24"', 'width="15" height="15" style="vertical-align:-2px"')}${KIND[pub.discardTop].n}` : '');
   $('#btn-draw').disabled = !(myTurn && !pub.pending && !pub.giving);
 
   // nope 窗口条
   const pd = $('#pend');
   if (pub.pending) {
     const tgt = pub.pending.target !== null && pub.pending.target !== undefined ? ` → ${name(pub.pending.target)}` : '';
-    pd.innerHTML = `<b>${KIND[pub.pending.type].em} ${name(pub.pending.by)} 出了「${KIND[pub.pending.type].n}」${tgt}</b>
+    pd.innerHTML = `<b>${KCARD[pub.pending.type].replace('width="24" height="24"', 'width="18" height="18" style="vertical-align:-4px"')} ${esc(name(pub.pending.by))} 出了「${KIND[pub.pending.type].n}」${esc(tgt)}</b>
       <span style="color:var(--muted)">出 🚫 可否决</span>
       <span class="ttl" id="pend-ttl">${Math.ceil(pub.pending.ttl / 1000)}s</span>`;
     pd.classList.remove('hidden');
@@ -156,7 +157,7 @@ function renderHand() {
   const myTurn = pub && pub.turn === mySeat && !pub.pending && !pub.giving && pub.winner === null;
   const giving = pub && pub.giving && pub.giving.from === mySeat;
   $('#mycards').innerHTML = (hand || []).map(c => {
-    const em = KIND[c.kind].em, nm = KIND[c.kind].n;
+    const em = KCARD[c.kind].replace('width="24" height="24"', 'width="26" height="26"'), nm = KIND[c.kind].n;
     const actionable = (myTurn && ['skip','attack','favor','shuffle','seefuture','bottom'].includes(c.kind)) || giving;
     const sel = selCard === c.uid || (pendingTarget && pendingTarget.uid === c.uid);
     return `<div class="card hand ${actionable ? 'playable' : ''} ${sel ? 'sel' : ''}" data-uid="${c.uid}" title="${nm}">

@@ -1,4 +1,5 @@
 /* 五子棋客户端 — 原生 JS + canvas（15 路棋盘） */
+import { svgTrophy, svgStone, avatarURI } from '/assets/icons.js';
 const $ = (s) => document.querySelector(s);
 const COLORS = ['#1a1a1a', '#f5f5f5'];
 const CN = ['黑方', '白方'];
@@ -94,7 +95,7 @@ function renderPlayers() {
   $('#players').innerHTML = (players || []).map((p, i) => p ? `
     <div class="player ${p.connected ? '' : 'off'} ${i === mySeat ? 'me' : ''}">
       <span class="dot" style="background:${COLORS[i]};border:1px solid #555"></span>
-      <img class="pavatar" src="${esc(p.avatar || '')}" onerror="this.style.visibility='hidden'">
+      <img class="pavatar" src="${avatarURI(p.gid || p.name || i, p.name)}" alt="">
       <span class="pname">${esc(p.name)}</span>
       ${p.owner ? '<span class="badge">房主</span>' : ''}
       <span class="conn">${p.connected ? CN[i] : CN[i] + '·离线'}</span>
@@ -122,13 +123,14 @@ function updateUI() {
     let text = `等待 ${seatName(game.turn)} 落子…`;
     if (mySeat >= 0 && game.turn === mySeat) { text = '轮到你落子 ⚫'; tb.classList.add('me'); }
     else tb.classList.remove('me');
-    tb.textContent = text; tb.classList.remove('hidden');
+    tb.innerHTML = esc2(text).replace(/\u{1F3C6}/gu, svgTrophy(16)).replace(/⚫/g, svgStone(13, true)); tb.classList.remove('hidden');
   } else tb.classList.add('hidden');
 }
 
+function esc2(t) { return String(t ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 function showBanner(text, me) {
   const tb = $('#turn-banner');
-  tb.textContent = text; tb.classList.remove('hidden'); tb.classList.toggle('me', !!me);
+  tb.innerHTML = esc2(text).replace(/\u{1F3C6}/gu, svgTrophy(16)).replace(/⚫/g, svgStone(13, true)); tb.classList.remove('hidden'); tb.classList.toggle('me', !!me);
 }
 
 /* ---------- board ---------- */
@@ -225,5 +227,26 @@ function toast(msg, err) {
 window.__dbg = () => ({ mySeat, roomView, game, players });
 
 /* boot */
+function showLobby() { $('#lobby').classList.remove('hidden'); }
 if (ROOM && /^[a-z0-9]{4}$/.test(ROOM)) connect();
 else showLobby();
+
+/* ---------- 大厅：创建 / 加入 ---------- */
+function saveProfile() {
+  profile.name = ($('#lobby-name').value || '').slice(0, 16) || '玩家';
+  localStorage.setItem('fxq_profile', JSON.stringify(profile));
+}
+$('#btn-create').onclick = async () => {
+  saveProfile();
+  const r = await fetch('/api/new-room?game=gobang').then(r => r.json()).catch(() => null);
+  if (r && r.code) location.href = '/gobang?room=' + r.code;
+  else $('#lobby-msg').textContent = '创建失败，请重试';
+};
+$('#btn-join').onclick = () => {
+  const code = $('#join-code').value.trim().toLowerCase();
+  if (!/^[a-z0-9]{4}$/.test(code)) { $('#lobby-msg').textContent = '房间号为 4 位字母数字'; return; }
+  saveProfile();
+  location.href = '/gobang?room=' + code;
+};
+$('#lobby-name').value = profile.name;
+if (document.getElementById('lobby-avatar')) document.getElementById('lobby-avatar').src = avatarURI(profile.gid, profile.name);

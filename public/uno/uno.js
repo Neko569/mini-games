@@ -1,3 +1,4 @@
+import { svgTrophy, svgCrown, avatarURI } from '/assets/icons.js';
 /* UNO 客户端 */
 const $ = (s) => document.querySelector(s);
 const CC = { R: '#e53935', Y: '#fdd835', G: '#43a047', B: '#1e88e5' };
@@ -67,7 +68,7 @@ function cardBG(c) {
 function renderPlayers() {
   $('#players').innerHTML = (players || []).map((p, i) => p ? `
     <div class="pl ${i === pub?.turn ? 'active' : ''} ${p.connected ? '' : 'off'}">
-      <b>${esc(p.name)}</b>${p.owner ? '<span>👑</span>' : ''}
+      <b>${esc(p.name)}</b>${p.owner ? `<span>${svgCrown(13)}</span>` : ''}
       <span class="cnt">${pub ? pub.handCounts[i] + ' 张' : '—'}</span>
     </div>` : '').join('');
 }
@@ -132,7 +133,7 @@ function enterGame() {
   $('#colorpick').querySelectorAll('.cbtn').forEach(b => b.onclick = () => tryPlay(pendingWildIdx, b.dataset.c));
 }
 function showWin(nm) {
-  $('#winbox').textContent = `🏆 ${nm} 获胜！`;
+  $('#winbox').innerHTML = svgTrophy(26) + ' ' + esc(nm) + ' 获胜！';
   $('#winbox').classList.remove('hidden');
 }
 function chatLine(n, t) {

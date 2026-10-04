@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>游戏厅 · 与晚风棋社</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2.5' y='2.5' width='19' height='19' rx='4.5' fill='%23fff' stroke='%23c9d2e0'/%3E%3Ccircle cx='7.5' cy='7.5' r='2' fill='%23243040'/%3E%3Ccircle cx='16.5' cy='7.5' r='2' fill='%23243040'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23243040'/%3E%3Ccircle cx='7.5' cy='16.5' r='2' fill='%23243040'/%3E%3Ccircle cx='16.5' cy='16.5' r='2' fill='%23243040'/%3E%3C/svg%3E">
 <style>
   :root { --bg:#0f1420; --panel:#1a2233; --text:#e8ecf4; --muted:#8b97ad; --accent:#4f8cff; }
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -15,7 +15,7 @@
   .games { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; margin-bottom:28px; }
   .card { background:var(--panel); border-radius:14px; padding:20px; border:1px solid #24304a; transition:.2s; }
   .card:hover { border-color:var(--accent); }
-  .card .icon { font-size:34px; }
+  .card .icon svg { width:44px; height:44px; display:block; }
   .card h2 { font-size:18px; margin:8px 0 4px; }
   .card p { color:var(--muted); font-size:13px; margin-bottom:14px; line-height:1.6; }
   .btn { border:none; border-radius:10px; padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer; background:var(--accent); color:#fff; }
@@ -56,7 +56,8 @@
     <div class="hint" id="msg"></div>
   </div>
 </div>
-<script>
+<script type="module">
+import { EMBLEM, svgDie, avatarURI } from '/assets/icons.js';
 const qs = new URLSearchParams(location.search);
 const profile = JSON.parse(localStorage.getItem('fxq_profile') || '{}');
 if (qs.get('name')) profile.name = qs.get('name');
@@ -76,13 +77,13 @@ const GAMES = [
 
 document.getElementById('games').innerHTML = GAMES.map(g => `
   <div class="card">
-    <div class="icon">${g.icon}</div>
+    <div class="icon">${EMBLEM[g.id] || ""}</div>
     <h2>${g.name}</h2>
     <p>${g.desc}</p>
     <div class="row"><button class="btn" data-game="${g.id}" data-path="${g.path}">创建房间</button></div>
   </div>`).join('');
 
-document.getElementById('avatar').src = profile.avatar || '';
+document.getElementById('avatar').src = avatarURI(profile.gid, profile.name);
 document.getElementById('lobby-name').value = profile.name;
 
 document.getElementById('games').addEventListener('click', async (e) => {

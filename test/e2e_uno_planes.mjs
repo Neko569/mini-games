@@ -1,7 +1,7 @@
 const W = 'ws://127.0.0.1:8787/ws/';
 function client(gid, name, game, room) {
   const ws = new WebSocket(W + game + '/' + room + '?gid=' + gid + '&name=' + encodeURIComponent(name));
-  const st = { seat: -2, msgs: [], hand: null, pub: null, busy: false, ws, phase: null, turn: 0, strikes: [[], []], downs: [] };
+  const st = { seat: -2, msgs: [], hand: null, pub: null, busy: false, ws, phase: null, turn: 0, winner: null, strikes: [[], []], downs: [] };
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
     if (m.t === 'welcome') { st.seat = m.you.seat; st.busy = false; }
@@ -15,7 +15,7 @@ function client(gid, name, game, room) {
       if (m.by === st.seat) st.lastRes = m.res;
       if (m.res === 'down') st.downs.push({ by: m.by, x: m.x, y: m.y });
     }
-    if (m.t === 'finished') st.winner = m.winner;
+    if (m.t === 'finished') { st.winner = m.winner; if (m.pub) st.pub = m.pub; st.busy = false; }
   };
   ws.onopen = () => ws.send(JSON.stringify({ t: 'join' }));
   return st;
@@ -63,11 +63,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < 50 && (pa.seat < 0 || pb.seat < 0); i++) await sleep(100);
   pa.ws.send(JSON.stringify({ t: 'start' }));
   for (let i = 0; i < 20 && pa.phase !== 'placing'; i++) await sleep(100);
-  pa.ws.send(JSON.stringify({ t: 'place', planes: [{ x: 2, y: 0, rot: 0 }, { x: 5, y: 2, rot: 0 }, { x: 8, y: 0, rot: 0 }] }));
-  pb.ws.send(JSON.stringify({ t: 'place', planes: [{ x: 2, y: 0, rot: 0 }, { x: 5, y: 2, rot: 0 }, { x: 8, y: 0, rot: 0 }] }));
+  const sol = [{ x: 0, y: 2, rot: 3 }, { x: 0, y: 7, rot: 3 }, { x: 3, y: 4, rot: 3 }];
+  pa.ws.send(JSON.stringify({ t: 'place', planes: sol }));
+  pb.ws.send(JSON.stringify({ t: 'place', planes: sol }));
   for (let i = 0; i < 20 && pa.phase !== 'fighting'; i++) await sleep(100);
   console.log('phase:', pa.phase);
-  const heads = [{ x: 2, y: 0 }, { x: 5, y: 2 }, { x: 8, y: 0 }];
+  const heads = sol.map(p => ({ x: p.x, y: p.y }));
   let s2 = 0, downs = 0;
   while (pa.winner === null && s2++ < 300) {
     await sleep(70);

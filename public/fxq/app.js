@@ -1,5 +1,6 @@
 /* 飞行棋客户端 — 原生 JS + canvas（棋盘几何取自官方坐标函数） */
 import { boardCoord, movablePlanes } from './engine.js';
+import { svgDie, svgTrophy, avatarURI } from '/assets/icons.js';
 
 const $ = (s) => document.querySelector(s);
 const COLORS = ['#f43f5e', '#3b82f6', '#22c55e', '#eab308'];
@@ -122,7 +123,7 @@ function renderPlayers() {
   box.innerHTML = (players || []).map((p, i) => p ? `
     <div class="player ${p.connected ? '' : 'off'} ${i === mySeat ? 'me' : ''}">
       <span class="dot" style="background:${COLORS[i]}"></span>
-      <img class="pavatar" src="${esc(p.avatar || '')}" onerror="this.style.visibility='hidden'">
+      <img class="pavatar" src="${avatarURI(p.gid || p.name || i, p.name)}" alt="">
       <span class="pname">${esc(p.name)}</span>
       ${p.owner ? '<span class="badge">房主</span>' : ''}
       <span class="conn">${p.connected ? '' : '离线'}</span>
@@ -157,22 +158,23 @@ function updateUI() {
     if (mySeat >= 0 && turn === mySeat) { text = '轮到你掷骰子 🎲'; tb.classList.add('me'); }
     else if (mySeat >= 0 && turn === 4 + mySeat) { text = `掷出 ${game.lastDice} 点，点击高亮飞机移动`; tb.classList.add('me'); }
     else tb.classList.remove('me');
-    tb.textContent = text; tb.classList.remove('hidden');
+    tb.innerHTML = esc2(text).replace(/🎲/g, svgDie(1, 15).replace('<svg ', '<svg style="vertical-align:-2px" ')); tb.classList.remove('hidden');
   } else tb.classList.add('hidden');
 
   if (game && started) {
-    $('#dice').textContent = DICE[Math.max(0, Math.min(5, game.lastDice - 1))] || '⚀';
-  } else $('#dice').textContent = '⚀';
+    $('#dice').innerHTML = svgDie(Math.max(1, Math.min(6, game.lastDice || 1)), 44);
+  } else $('#dice').innerHTML = svgDie(1, 44);
 }
 
 function diceAnim(n) {
   const d = $('#dice');
   d.classList.remove('rolling'); void d.offsetWidth; d.classList.add('rolling');
-  setTimeout(() => { d.textContent = DICE[Math.max(0, Math.min(5, (n || 1) - 1))] || '⚀'; }, 380);
+  setTimeout(() => { d.innerHTML = svgDie(Math.max(1, Math.min(6, n || 1)), 44); }, 380);
 }
+function esc2(t) { return String(t ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 function showBanner(text, me) {
   const tb = $('#turn-banner');
-  tb.textContent = text; tb.classList.remove('hidden'); tb.classList.toggle('me', !!me);
+  tb.innerHTML = esc2(text).replace(/\u{1F3C6}/gu, svgTrophy(16)).replace(/🎲/g, svgDie(1, 15).replace('<svg ', '<svg style="vertical-align:-2px" ')); tb.classList.remove('hidden'); tb.classList.toggle('me', !!me);
 }
 
 /* ---------- board rendering（几何来自官方坐标函数） ---------- */
@@ -267,8 +269,14 @@ function drawPlane(x, y, color, highlight, t) {
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, 7); ctx.fill();
   ctx.shadowBlur = 0;
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 4px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('✈', 0, 0.5);
+  // SVG 风格小飞机（路径绘制）
+  ctx.fillStyle = 'rgba(255,255,255,.92)';
+  ctx.beginPath();
+  ctx.moveTo(0, -3.6); ctx.lineTo(1.1, -0.6); ctx.lineTo(3.4, 0.8); ctx.lineTo(3.4, 1.8);
+  ctx.lineTo(1.0, 1.2); ctx.lineTo(0.7, 2.6); ctx.lineTo(1.9, 3.4); ctx.lineTo(1.9, 4.0);
+  ctx.lineTo(-1.9, 4.0); ctx.lineTo(-1.9, 3.4); ctx.lineTo(-0.7, 2.6); ctx.lineTo(-1.0, 1.2);
+  ctx.lineTo(-3.4, 1.8); ctx.lineTo(-3.4, 0.8); ctx.lineTo(-1.1, -0.6);
+  ctx.closePath(); ctx.fill();
   ctx.restore();
 }
 
