@@ -13,7 +13,7 @@ for (let trial = 0; trial < 6; trial++) {
       if (act && Math.random() < 0.35) { playAction(g, s, act.uid, act.kind === 'favor' ? g.hands.map((_, i) => i).filter(i => g.alive[i] && i !== s)[0] : null); continue; }
       draw(g, s);
     } catch (e) {
-      if (!['还没轮到你','本回合无需再摸','牌堆已空'].some(m => e.message.includes(m))) {
+      if (!['还没轮到你','本回合无需再摸','牌堆已空','该玩家没有手牌可要'].some(m => e.message.includes(m))) {
         console.log('trial', trial, 'Unexpected:', e.message); process.exit(1);
       }
       // 卡住兜底：强转回合

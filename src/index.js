@@ -14,7 +14,8 @@ export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRo
 // ---- 安全：简易限速（每 IP 每路由滑动窗口，内存实现，重启清零） ----
 const RATE = { 'new-room': 10, 'room-info': 60, lobby: 30, stats: 30 }; // 次/分钟
 const rateMap = new Map();
-function rateLimit(req, route) {
+function rateLimit(req, route, env) {
+  if (env && env.RATE_LIMIT_OFF === '1') return false; // CI/本地功能测试旁路
   const limit = RATE[route];
   if (!limit) return null;
   const ip = req.headers.get('CF-Connecting-IP') || 'local';
@@ -88,7 +89,7 @@ export default {
 
     // 新建房：/api/new-room?game=fxq|gobang
     if (url.pathname === '/api/new-room') {
-      if (rateLimit(req, 'new-room')) return Response.json({ error: '太快了，稍后再试' }, { status: 429, headers: CORS });
+      if (rateLimit(req, 'new-room', env)) return Response.json({ error: '太快了，稍后再试' }, { status: 429, headers: CORS });
       const game = url.searchParams.get('game') || 'fxq';
       const cfg = GAMES[game];
       if (!cfg) return Response.json({ error: 'unknown game' }, { status: 400, headers: CORS });
@@ -103,7 +104,7 @@ export default {
 
     // 房间探测：/api/room-info?code=xxxx（按首字母识别游戏）
     if (url.pathname === '/api/room-info') {
-      if (rateLimit(req, 'room-info')) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
+      if (rateLimit(req, 'room-info', env)) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
       const code = (url.searchParams.get('code') || '').toLowerCase();
       if (!/^[a-z0-9]{4}$/.test(code)) return Response.json({ error: 'code' }, { status: 400, headers: CORS });
       const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens', r: 'reversi' };
@@ -115,7 +116,7 @@ export default {
 
     // 大厅：跨游戏活跃房间列表（LobbyDO 维护，房间 DO 状态变化时上报）
     if (url.pathname === '/api/lobby') {
-      if (rateLimit(req, 'lobby')) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
+      if (rateLimit(req, 'lobby', env)) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
       const stub = env.LOBBY.get(env.LOBBY.idFromName('global'));
       return stub.fetch('https://lobby/list');
     }
@@ -123,7 +124,7 @@ export default {
     // 战绩：只读查询（写入仅限 DO 内部 binding 上报，公开写接口已封禁防伪造/投毒）
     if (url.pathname === '/api/stats') {
       if (req.method !== 'GET') return new Response('method not allowed', { status: 405, headers: CORS });
-      if (rateLimit(req, 'stats')) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
+      if (rateLimit(req, 'stats', env)) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
       const stub = env.STATS.get(env.STATS.idFromName('global'));
       return stub.fetch('https://stats/query' + url.search);
     }

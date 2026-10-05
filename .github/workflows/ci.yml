@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 语法检查
+        run: |
+          fail=0
+          for f in src/*.js public/assets/*.js; do
+            node --check "$f" || fail=1
+          done
+          exit $fail
+
+      - name: 引擎单测（飞行棋/五子棋/UNO/达芬奇/爆炸猫/黑白棋）
+        run: |
+          node test/kittens.test.mjs
+          node test/uno.test.mjs
+          node test/davinci.test.mjs
+          node test/reversi.test.mjs
+
+      - name: E2E 功能回归（限速旁路）
+        run: |
+          npx wrangler dev --port 8787 --local --var RATE_LIMIT_OFF:1 > wrangler-a.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8787/api/lobby > /dev/null && break
+            sleep 2
+          done
+          node test/e2e_all.mjs http://localhost:8787
+
+      - name: E2E 安全回归（限速开启）
+        run: |
+          pkill -f workerd || true
+          sleep 3
+          npx wrangler dev --port 8787 --local > wrangler-b.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8787/api/lobby > /dev/null && break
+            sleep 2
+          done
+          node test/security.test.mjs http://localhost:8787
+
+      - name: 上传失败日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: wrangler-*.log

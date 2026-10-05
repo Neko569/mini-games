@@ -59,6 +59,7 @@ export function playAction(g, seat, uid, target) {
   if (card.kind === 'favor') {
     if (target === undefined || target === null || target === seat) throw new Error('指定一个其他玩家');
     if (!g.alive[target]) throw new Error('该玩家已出局');
+    if (g.hands[target].length === 0) throw new Error('该玩家没有手牌可要'); // 防 give 超时分支产生 undefined 卡
   }
   g.hands[seat] = g.hands[seat].filter(c => c.uid !== uid);
   g.pending = { type: card.kind, by: seat, target: target ?? null, uid, expires: Date.now() + WINDOW_MS };
@@ -113,15 +114,17 @@ export function give(g, seat, uid) {
   g.lastAction = { t: 'give', seat, to };
   return g;
 }
-/* favor 超时：随机给一张 */
+/* favor 超时：随机给一张（手牌为空时只取消索要，不产生空卡） */
 export function resolveGiveTimeout(g) {
   if (!g.giving) return false;
   const h = g.hands[g.giving.from];
-  const card = h[Math.floor(Math.random() * h.length)];
-  g.hands[g.giving.from] = h.filter(c => c !== card);
-  g.hands[g.giving.to].push(card);
+  const card = h.length ? h[Math.floor(Math.random() * h.length)] : null;
+  if (card) {
+    g.hands[g.giving.from] = h.filter(c => c !== card);
+    g.hands[g.giving.to].push(card);
+  }
   g.giving = null;
-  g.lastAction = { t: 'giveAuto', seat: g.lastAction?.seat ?? null };
+  g.lastAction = { t: card ? 'giveAuto' : 'giveEmpty', seat: g.lastAction?.seat ?? null };
   return true;
 }
 

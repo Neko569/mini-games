@@ -105,6 +105,15 @@ ok((await fetch(B + '/ws/gobang/faaa', { headers: { Origin: 'https://evil.exampl
   ok((resp.headers.get('content-security-policy') || '').includes("frame-ancestors 'none'")
     && resp.headers.get('x-content-type-options') === 'nosniff', '安全响应头齐全');
 }
+// 9. API 限速（放最后：触发后 60s 内 new-room 都会 429，影响其他检查）
+{
+  let got429 = 0;
+  for (let i = 0; i < 15; i++) {
+    const resp = await fetch(B + '/api/new-room?game=gobang');
+    if (resp.status === 429) got429++;
+  }
+  ok(got429 > 0, `new-room 限速生效（${got429}/15 次 429）`);
+}
 
 console.log(`\n══ 安全回归: ${pass} 通过, ${fail} 失败 ══`);
 process.exit(fail ? 1 : 0);
