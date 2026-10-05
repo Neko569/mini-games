@@ -1,5 +1,6 @@
 /* 五子棋客户端 — 原生 JS + canvas（15 路棋盘） */
 import { svgTrophy, svgStone, avatarURI } from '/assets/icons.js';
+import { gameClient } from '/assets/game-client.js';
 const $ = (s) => document.querySelector(s);
 const COLORS = ['#1a1a1a', '#f5f5f5'];
 const CN = ['黑方', '白方'];
@@ -17,21 +18,19 @@ const ROOM = (qs.get('room') || '').toLowerCase();
 
 /* ---------- state ---------- */
 let ws = null, mySeat = -1, roomView = null, game = null, players = [];
-let reconnectTry = 0;
 
 /* ---------- websocket ---------- */
 function connect() {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const url = `${proto}://${location.host}/ws/gobang/${ROOM}` +
-    `?gid=${encodeURIComponent(profile.gid)}&name=${encodeURIComponent(profile.name)}` +
-    (profile.avatar ? `&avatar=${encodeURIComponent(profile.avatar)}` : '');
-  ws = new WebSocket(url);
-  ws.onopen = () => { reconnectTry = 0; send({ t: 'join' }); };
-  ws.onmessage = (ev) => { try { handle(JSON.parse(ev.data)); } catch (e) { console.error('handler error', e); } };
-  ws.onclose = (ev) => {
-    if (ev.code === 4000) { toast('你的账号在其他窗口连接，本窗口已退出', true); return; }
-    if (reconnectTry < 12) { reconnectTry++; setTimeout(connect, Math.min(1000 * 2 ** (reconnectTry - 1), 15000)); }
-  };
+  ws = gameClient({
+    path: '/ws/gobang/' + ROOM,
+    profile,
+    onMsg: handle,
+    onStatus: (s) => {
+      if (s === 'reconnecting') toast('连接断开，正在重连…', true);
+      else if (s === 'reconnected') toast('已重新连接，对局已恢复');
+      else if (s === 'kicked') toast('你的账号在其他窗口连接，本窗口已退出', true);
+    },
+  });
 }
 function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 

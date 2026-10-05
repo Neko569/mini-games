@@ -1,3 +1,4 @@
+import { gameClient } from '/assets/game-client.js';
 /* 炸飞机客户端 — 布阵 + 对轰（本地布阵校验与服务端同款规则） */
 const $ = (s) => document.querySelector(s);
 const W = 10;
@@ -11,21 +12,23 @@ profile.name = (profile.name || '').slice(0, 16) || '玩家';
 localStorage.setItem('fxq_profile', JSON.stringify(profile));
 const ROOM = (qs.get('room') || '').toLowerCase();
 
-let ws = null, mySeat = -1, players = [], pub = null, reconnectTry = 0;
+let ws = null, mySeat = -1, players = [], pub = null;
 let placing = [], rot = 0;
 let phase = 'placing';
 
 function connect() {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  ws = new WebSocket(`${proto}://${location.host}/ws/planes/${ROOM}?gid=${encodeURIComponent(profile.gid)}&name=${encodeURIComponent(profile.name)}`);
-  ws.onopen = () => { reconnectTry = 0; send({ t: 'join' }); };
-  ws.onmessage = (ev) => { try { handle(JSON.parse(ev.data)); } catch (e) { console.error(e); } };
-  ws.onclose = (ev) => {
-    if (ev.code === 4000) { toast('账号在其他窗口连接', true); return; }
-    if (reconnectTry < 12) { reconnectTry++; setTimeout(connect, Math.min(1000 * 2 ** (reconnectTry - 1), 15000)); }
-  };
+  ws = gameClient({
+    path: '/ws/planes/' + ROOM,
+    profile,
+    onMsg: handle,
+    onStatus: (s) => {
+      if (s === 'reconnecting') toast('连接断开，正在重连…', true);
+      else if (s === 'reconnected') toast('已重新连接，对局已恢复');
+      else if (s === 'kicked') toast('账号在其他窗口连接', true);
+    },
+  });
 }
-const send = (o) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
+const send = (o) => ws && ws.send(o);
 
 function handle(m) {
   switch (m.t) {

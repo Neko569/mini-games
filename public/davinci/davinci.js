@@ -1,4 +1,5 @@
 import { svgTrophy, svgCrown, svgSpark, avatarURI } from '/assets/icons.js';
+import { gameClient } from '/assets/game-client.js';
 /* 达芬奇密码客户端 */
 const $ = (s) => document.querySelector(s);
 const CC = { B: '#1a1a1a', W: '#eceff1', J: 'linear-gradient(135deg,#e53935,#1e88e5)' };
@@ -12,20 +13,22 @@ profile.name = (profile.name || '').slice(0, 16) || '玩家';
 localStorage.setItem('fxq_profile', JSON.stringify(profile));
 const ROOM = (qs.get('room') || '').toLowerCase();
 
-let ws = null, mySeat = -1, players = [], hand = [], pub = null, reconnectTry = 0;
+let ws = null, mySeat = -1, players = [], hand = [], pub = null;
 let gTarget = null, gColor = null, gRank = null;
 
 function connect() {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  ws = new WebSocket(`${proto}://${location.host}/ws/davinci/${ROOM}?gid=${encodeURIComponent(profile.gid)}&name=${encodeURIComponent(profile.name)}`);
-  ws.onopen = () => { reconnectTry = 0; send({ t: 'join' }); };
-  ws.onmessage = (ev) => { try { handle(JSON.parse(ev.data)); } catch (e) { console.error(e); } };
-  ws.onclose = (ev) => {
-    if (ev.code === 4000) { toast('账号在其他窗口连接，本窗口已退出', true); return; }
-    if (reconnectTry < 12) { reconnectTry++; setTimeout(connect, Math.min(1000 * 2 ** (reconnectTry - 1), 15000)); }
-  };
+  ws = gameClient({
+    path: '/ws/davinci/' + ROOM,
+    profile,
+    onMsg: handle,
+    onStatus: (s) => {
+      if (s === 'reconnecting') toast('连接断开，正在重连…', true);
+      else if (s === 'reconnected') toast('已重新连接，对局已恢复');
+      else if (s === 'kicked') toast('你的账号在其他窗口连接，本窗口已退出', true);
+    },
+  });
 }
-const send = (o) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
+const send = (o) => ws && ws.send(o);
 
 function handle(m) {
   switch (m.t) {
