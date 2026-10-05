@@ -44,6 +44,34 @@ const DEF = {
   minPlayers: 2, minMsg: '至少需要 2 名玩家',
   fullMsg: '房间已满（爆炸猫 2-5 人）', fullClose: false,
   newGame: (seats) => newGame(seats.length),
+  // nope 窗口 / 索要超时结算（基类 alarm 统一调度，游戏计时优先于死房间回收）
+  alarm: async (base) => {
+    const r = base.room;
+    if (!r.game) return;
+    const now = Date.now();
+    if (r.game.pending) {
+      if (r.game.pending.expires <= now + 5) {
+        const p = r.game.pending;
+        resolvePending(r.game);
+        await base.saveRoom();
+        pushHands(base);
+        base._broadcast({ t: 'state', pub: pubView(base) });
+        if (p.type === 'seefuture') sendPeek(base, p.by);
+      } else {
+        await base.state.storage.setAlarm(r.game.pending.expires);
+      }
+    } else if (r.game.giving) {
+      if (r.game.giving.expires <= now + 5) {
+        resolveGiveTimeout(r.game);
+        await base.saveRoom();
+        pushHands(base);
+        base._broadcast({ t: 'state', pub: pubView(base) });
+      } else {
+        await base.state.storage.setAlarm(r.game.giving.expires);
+      }
+    }
+    checkOver(base);
+  },
   afterStart: (base) => { pushHands(base); base._broadcast({ t: 'state', pub: pubView(base) }); },
   rejoinSync: (base, ws, seat) => {
     base._send(ws, { t: 'hand', cards: base.room.game.hands[seat] });
@@ -103,33 +131,4 @@ function checkOver(base) {
 export class KittensRoomDO extends BaseRoomDO {
   constructor(state, env) { super(state, env, DEF); }
 
-  // nope 窗口 / 索要超时结算（休眠安全的定时器）
-  async alarm() {
-    await this.loadRoom();
-    const r = this.room;
-    if (!r.game) return;
-    const now = Date.now();
-    if (r.game.pending) {
-      if (r.game.pending.expires <= now + 5) {
-        const p = r.game.pending;
-        resolvePending(r.game);
-        await this.saveRoom();
-        pushHands(this);
-        this._broadcast({ t: 'state', pub: pubView(this) });
-        if (p.type === 'seefuture') sendPeek(this, p.by);
-      } else {
-        await this.state.storage.setAlarm(r.game.pending.expires);
-      }
-    } else if (r.game.giving) {
-      if (r.game.giving.expires <= now + 5) {
-        resolveGiveTimeout(r.game);
-        await this.saveRoom();
-        pushHands(this);
-        this._broadcast({ t: 'state', pub: pubView(this) });
-      } else {
-        await this.state.storage.setAlarm(r.game.giving.expires);
-      }
-    }
-    checkOver(this);
-  }
 }

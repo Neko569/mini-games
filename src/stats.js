@@ -38,9 +38,12 @@ export class StatsDO {
           `SELECT game, SUM(win) AS w, COUNT(*) AS n FROM results WHERE gid = ? GROUP BY game`, String(gid)).toArray();
         return Response.json({ mine: rows });
       }
+      // 安全：榜单不得返回 gid（身份凭证，泄露可被用于冒名接管座位）；按游戏可选过滤
+      const where = game && GAMES.includes(game) ? `WHERE game = ?` : '';
+      const args = game && GAMES.includes(game) ? [game] : [];
       const rows = sql.exec(
-        `SELECT game, gid, name, SUM(win) AS w, COUNT(*) AS n
-         FROM results GROUP BY game, gid ORDER BY game, w DESC, n ASC LIMIT 300`).toArray();
+        `SELECT game, MAX(name) AS name, SUM(win) AS w, COUNT(*) AS n
+         FROM results ${where} GROUP BY game, gid ORDER BY game, w DESC, n ASC LIMIT 300`, ...args).toArray();
       return Response.json({ top: rows });
     }
 

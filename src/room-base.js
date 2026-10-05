@@ -109,6 +109,23 @@ export class BaseRoomDO {
     await this.loadRoom(); await this.onOffline(this._tagOf(ws));
   }
 
+  // ---- 闹钟统一入口：游戏计时优先，随后死房间回收 ----
+  async alarm() {
+    await this.loadRoom();
+    if (this.def.alarm) { try { await this.def.alarm(this); } catch {} }
+    try {
+      // 无任何连接（座位+观战全走光且无 WS）→ 清空存储，防死房间永久残留
+      if (this.state.getWebSockets().length === 0) {
+        const r = this.room;
+        const anyLive = r.seats.some(s => s && s.connected) || Object.keys(r.spectators || {}).length > 0;
+        if (!anyLive) {
+          await this.state.storage.deleteAll();
+          this.room = null;
+        }
+      }
+    } catch {}
+  }
+
   _tagOf(ws) {
     for (const tag of this.state.getTags(ws)) { try { return JSON.parse(tag); } catch {} }
     return null;
@@ -211,6 +228,10 @@ export class BaseRoomDO {
     }
     this.saveRoom();
     this._broadcast({ t: 'players', players: this.playerList() });
+    // 全员走光 → 安排 10 分钟后回收（README 承诺的死房间清理）
+    if (this.state.getWebSockets().length === 0) {
+      this.state.storage.setAlarm(Date.now() + 10 * 60 * 1000).catch(() => {});
+    }
   }
 
   // ---- 终局：统一收口（started='over' + 战绩上报）----
