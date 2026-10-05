@@ -42,10 +42,12 @@ jobs:
             curl -sf http://localhost:8787/api/lobby > /dev/null && break
             sleep 2
           done
+          curl -sf http://localhost:8787/api/lobby > /dev/null || { echo '服务未就绪'; tail -50 wrangler-a.log; exit 1; }
           node test/e2e_all.mjs http://localhost:8787
 
       - name: E2E 安全回归（限速开启）
         run: |
+          pkill -f "wrangler dev" || true
           pkill -f workerd || true
           sleep 3
           npx wrangler dev --port 8787 --local > wrangler-b.log 2>&1 &
@@ -53,6 +55,7 @@ jobs:
             curl -sf http://localhost:8787/api/lobby > /dev/null && break
             sleep 2
           done
+          curl -sf http://localhost:8787/api/lobby > /dev/null || { echo '服务未就绪'; tail -50 wrangler-b.log; exit 1; }
           node test/security.test.mjs http://localhost:8787
 
       - name: 上传失败日志
