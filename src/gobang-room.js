@@ -1,5 +1,6 @@
 // Durable Object: 五子棋房间（2 人对坐 + 观战，SQLite 持久化 + WS Hibernation）
 import { reportResult } from './stats-report.js';
+import { reportLobby } from './lobby.js';
 import { newGame, place } from './gobang.js';
 
 const COLORS = ['#1a1a1a', '#f5f5f5']; // 黑 白
@@ -21,8 +22,11 @@ export class GobangRoomDO {
     return this.room;
   }
 
-  async saveRoom() {
-    if (this.room) await this.state.storage.put('room', this.room);
+    async saveRoom() {
+    if (this.room) {
+      await this.state.storage.put('room', this.room);
+      await reportLobby(this.env, 'gobang', 2, this.room);
+    }
   }
 
   async fetch(req) {
@@ -39,6 +43,7 @@ export class GobangRoomDO {
     // WS 升级
     if (req.headers.get('Upgrade') !== 'websocket') return new Response('expected websocket', { status: 400 });
     if (!this.room.code) this.room.code = url.searchParams.get('room') || null;
+    await this.saveRoom(); // 持久化房间号（休眠唤醒后 storage 中 code 才非空）
 
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);

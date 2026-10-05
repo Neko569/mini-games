@@ -1,5 +1,6 @@
 // Durable Object: 一个房间 = 一个 DO（状态持久化 + WebSocket Hibernation）
 import { reportResult } from './stats-report.js';
+import { reportLobby } from './lobby.js';
 import { initGame, rollDice, movePlane, penalty, movablePlanes } from './engine.js';
 
 const COLORS = ['#f43f5e', '#3b82f6', '#22c55e', '#eab308']; // 红蓝绿黄
@@ -20,8 +21,11 @@ export class RoomDO {
     return this.room;
   }
 
-  async saveRoom() {
-    if (this.room) await this.state.storage.put('room', this.room);
+    async saveRoom() {
+    if (this.room) {
+      await this.state.storage.put('room', this.room);
+      await reportLobby(this.env, 'fxq', 4, this.room);
+    }
   }
 
   async fetch(req) {
@@ -40,6 +44,7 @@ export class RoomDO {
     if (!upgrade) return new Response('expected websocket', { status: 400 });
 
     if (!this.room.code) this.room.code = url.searchParams.get('room') || null;
+    await this.saveRoom(); // 持久化房间号（休眠唤醒后 storage 中 code 才非空）
 
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);

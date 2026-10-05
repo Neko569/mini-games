@@ -1,5 +1,6 @@
 // Durable Object: 达芬奇密码房间（2-4 人推理）
 import { reportResult } from './stats-report.js';
+import { reportLobby } from './lobby.js';
 import { newGame, draw, guess, discard, faceDownCount } from './davinci.js';
 
 export class DavinciRoomDO {
@@ -17,7 +18,12 @@ export class DavinciRoomDO {
     };
     return this.room;
   }
-  async saveRoom() { if (this.room) await this.state.storage.put('room', this.room); }
+    async saveRoom() {
+    if (this.room) {
+      await this.state.storage.put('room', this.room);
+      await reportLobby(this.env, 'davinci', 4, this.room);
+    }
+  }
 
   async fetch(req) {
     await this.loadRoom();
@@ -28,6 +34,7 @@ export class DavinciRoomDO {
     }
     if (req.headers.get('Upgrade') !== 'websocket') return new Response('expected websocket', { status: 400 });
     if (!this.room.code) this.room.code = url.searchParams.get('room') || null;
+    await this.saveRoom(); // 持久化房间号（休眠唤醒后 storage 中 code 才非空）
 
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);

@@ -1,6 +1,7 @@
 // Durable Object: 黑白棋房间（2 人，黑=座位0 白=座位1）
 import { newGame, move, pass, legalMoves, counts } from './reversi.js';
 import { reportResult } from './stats-report.js';
+import { reportLobby } from './lobby.js';
 
 export class ReversiRoomDO {
   constructor(state, env) {
@@ -17,7 +18,12 @@ export class ReversiRoomDO {
     };
     return this.room;
   }
-  async saveRoom() { if (this.room) await this.state.storage.put('room', this.room); }
+  async saveRoom() {
+    if (this.room) {
+      await this.state.storage.put('room', this.room);
+      await reportLobby(this.env, 'reversi', 2, this.room);
+    }
+  }
 
   async fetch(req) {
     await this.loadRoom();
@@ -34,6 +40,8 @@ export class ReversiRoomDO {
         name: (u.searchParams.get('name') || '玩家').slice(0, 16),
         avatar: (u.searchParams.get('avatar') || '').slice(0, 500),
       };
+      if (!this.room.code) this.room.code = u.searchParams.get('room') || null;
+      await this.saveRoom(); // 持久化房间号（休眠唤醒后 storage 中 code 才非空）
       this.state.acceptWebSocket(pair[1], [JSON.stringify(tag)]);
       this.handleJoin(pair[1], tag);
       return new Response(null, { status: 101, webSocket: pair[0] });

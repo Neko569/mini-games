@@ -17,7 +17,8 @@
 - 每个游戏一个 **Durable Object** 房间（WebSocket hibernation + sqlite 持久化）
 - 房间号首字母路由游戏类型（f/g/u/p/d/k/r）
 - 全局 **StatsDO** 战绩统计（DO sqlite）
-- 大厅 + 房间号邀请 + 匿名开局 + 断线重连 + 房间 10 分钟无活动自动回收
+- 首页双 Tab：游戏大厅（实时跨游戏房间列表 + 快速加入，默认页）+ 游戏列表
+- 房间号邀请 + 匿名开局 + 断线重连 + 房间 10 分钟无活动自动回收
 - 美术资源全部内联 SVG（`public/assets/icons.js`），无外部依赖
 
 ## 本地开发

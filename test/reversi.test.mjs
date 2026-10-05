@@ -20,7 +20,8 @@ for (let t = 0; t < 200; t++) {
   }
   if (g2.winner === null) { console.log('FAIL: 无终局'); process.exit(1); }
   const c = counts(g2.board);
-  if (c.black + c.white > 64 || c.black === 0 || c.white === 0) { console.log('FAIL: 子数异常', c); process.exit(1); }
+  // 全歼（一方 0 子）是合法终局：双方都无合法落点 → 引擎正确判终局
+  if (c.black + c.white > 64) { console.log('FAIL: 子数异常', c); process.exit(1); }
   if (g2.winner !== -1 && ((g2.winner === 1 && c.black <= c.white) || (g2.winner === 2 && c.white <= c.black))) { console.log('FAIL: 判胜不一致', c, g2.winner); process.exit(1); }
 }
 console.log('REVERSI-ENGINE-PASS');

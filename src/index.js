@@ -7,8 +7,9 @@ import { DavinciRoomDO } from './davinci-room.js';
 import { KittensRoomDO } from './kittens-room.js';
 import { StatsDO } from './stats.js';
 import { ReversiRoomDO } from './reversi-room.js';
+import { LobbyDO } from './lobby.js';
 
-export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO, StatsDO, ReversiRoomDO };
+export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO, StatsDO, ReversiRoomDO, LobbyDO };
 
 // 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
 const GAMES = {
@@ -78,6 +79,12 @@ export default {
       return Response.json({ ...j, game }, { headers: CORS });
     }
 
+    // 大厅：跨游戏活跃房间列表（LobbyDO 维护，房间 DO 状态变化时上报）
+    if (url.pathname === '/api/lobby') {
+      const stub = env.LOBBY.get(env.LOBBY.idFromName('global'));
+      return stub.fetch('https://lobby/list');
+    }
+
     // WS 升级：/ws/{game}/{code}
     if (url.pathname === '/api/stats') {
     const stub = env.STATS.get(env.STATS.idFromName('global'));
@@ -89,7 +96,9 @@ export default {
       const game = m[1].toLowerCase();
       const code = m[2].toLowerCase();
       const stub = await gameDO(env, game, code);
-      return stub.fetch(`https://do/join${url.search}`, req);
+      // room= 编码进 query：DO 内部据此持久化房间号（大厅上报依赖）
+      const qs = url.search ? url.search + '&' : '?';
+      return stub.fetch(`https://do/join${qs}room=${code}`, req);
     }
 
     // 静态资源
