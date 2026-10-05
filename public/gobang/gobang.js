@@ -28,6 +28,7 @@ function connect() {
     onStatus: (s) => {
       if (s === 'reconnecting') toast('连接断开，正在重连…', true);
       else if (s === 'reconnected') toast('已重新连接，对局已恢复');
+      else if (s === 'full') toast('房间已满', true);
       else if (s === 'kicked') toast('你的账号在其他窗口连接，本窗口已退出', true);
     },
   });

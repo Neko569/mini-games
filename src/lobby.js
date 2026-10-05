@@ -13,7 +13,14 @@ export class LobbyDO {
       const key = `${e.game}:${e.code}`;
       // 房间结束或无人在线 → 移除；否则更新
       if (e.over || e.players === 0) delete rooms[key];
-      else rooms[key] = e;
+      else {
+        // 容量上限：满 100 时淘汰最旧条目，防恶意刷房撑爆
+        if (!rooms[key] && Object.keys(rooms).length >= 100) {
+          const oldest = Object.entries(rooms).sort((a, b) => (a[1].ts || 0) - (b[1].ts || 0))[0];
+          if (oldest) delete rooms[oldest[0]];
+        }
+        rooms[key] = e;
+      }
       await this.state.storage.put('rooms', rooms);
       return Response.json({ ok: true });
     }
@@ -29,7 +36,7 @@ export class LobbyDO {
       }
       if (dirty) await this.state.storage.put('rooms', rooms);
       out.sort((a, b) => b.ts - a.ts);
-      return Response.json({ rooms: out });
+      return Response.json({ rooms: out.slice(0, 60) });
     }
 
     return new Response('not found', { status: 404 });

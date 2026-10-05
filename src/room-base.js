@@ -73,6 +73,15 @@ export class BaseRoomDO {
 
   // ---- hibernation 消息分发 ----
   async webSocketMessage(ws, raw) {
+    // 消息级限速：30 条/秒滑动窗口，防存储写放大（每条动作消息 = 1 次持久化 + 1 次大厅上报）
+    let rl = this._rl && this._rl.get(ws);
+    if (!rl) (this._rl ||= new WeakMap()).set(ws, rl = { n: 0, ts: 0, strikes: 0 });
+    const nowMs = Date.now();
+    if (nowMs - rl.ts > 1000) { rl.ts = nowMs; rl.n = 0; }
+    if (++rl.n > 30) {
+      if (++rl.strikes >= 3) { try { ws.close(1008, 'flood'); } catch {} }
+      return; // 丢弃
+    }
     await this.loadRoom(); // 休眠唤醒后 room 为 null，必须先加载
     const tag = this._tagOf(ws);
     if (!tag) return;
@@ -132,10 +141,15 @@ export class BaseRoomDO {
         r.seats[seat] = { gid: tag.gid, name: tag.name, avatar: tag.avatar, connected: true, joinedAt: Date.now() };
         if (!r.owner) r.owner = tag.gid;
       } else if (this.def.spectate) {
+        if (Object.keys(r.spectators || {}).length >= 50) {
+          this._send(ws, { t: 'error', msg: '观战人数已达上限' });
+          return;
+        }
         r.spectators[tag.gid] = { name: tag.name, avatar: tag.avatar };
       } else {
         this._send(ws, { t: 'error', msg: this.def.fullMsg });
-        if (this.def.fullClose) { try { ws.close(1000, 'full'); } catch {} }
+        this._send(ws, { t: 'kicked', reason: 'full' });
+        if (this.def.fullClose) { try { ws.close(4001, 'full'); } catch {} }
         return;
       }
     }
