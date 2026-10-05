@@ -6,6 +6,14 @@
 import { reportLobby } from './lobby.js';
 import { reportResult } from './stats-report.js';
 
+// 头像消毒：只放行 data:image 与 https 图片地址，且不得含 HTML 危险字符
+function cleanAvatar(raw) {
+  if (!raw || raw.length > 600) return '';
+  if (!/^(data:image\/[a-z0-9.+-]+;|https:\/\/)/i.test(raw)) return '';
+  if (/["'`<>\s\\]/.test(raw)) return '';
+  return raw;
+}
+
 export class BaseRoomDO {
   constructor(state, env, def) {
     this.state = state;
@@ -52,9 +60,11 @@ export class BaseRoomDO {
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
     const info = {
+      // 输入消毒：昵称剥离 HTML 危险字符（防存储型 XSS）；头像仅允许 data:image / https 且
+      // 不含引号/尖括号/空白（防 <img src="..."> 属性逃逸）
       gid: url.searchParams.get('gid') || crypto.randomUUID(),
-      name: (url.searchParams.get('name') || '玩家').slice(0, 16),
-      avatar: (url.searchParams.get('avatar') || '').slice(0, 300),
+      name: (url.searchParams.get('name') || '玩家').replace(/[<>&"']/g, '').slice(0, 16) || '玩家',
+      avatar: cleanAvatar(url.searchParams.get('avatar') || ''),
     };
     this.state.acceptWebSocket(server, [JSON.stringify(info)]);
     if (this.def.joinOnUpgrade) this.handleJoin(server, info);
@@ -68,7 +78,8 @@ export class BaseRoomDO {
     if (!tag) return;
     let m; try { m = JSON.parse(raw); } catch { return; }
     if (m.t === 'ping') { this._send(ws, { t: 'pong' }); return; } // 兜底：dev 环境无 auto-response 时手动应答
-    const custom = this.def.actions && this.def.actions[m.t];
+    const custom = this.def.actions && Object.prototype.hasOwnProperty.call(this.def.actions, m.t)
+      && this.def.actions[m.t]; // hasOwnProperty：防 constructor/__proto__ 等原型链键误命中
     try {
       if (custom) return await custom(this, ws, tag, m);
       switch (m.t) {

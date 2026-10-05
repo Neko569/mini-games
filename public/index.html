@@ -90,6 +90,9 @@
 </div>
 <script type="module">
 import { EMBLEM, svgDie, avatarURI } from '/assets/icons.js';
+
+// HTML 转义（所有来自服务器的字符串渲染前必须过这里）
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const qs = new URLSearchParams(location.search);
 const profile = JSON.parse(localStorage.getItem('fxq_profile') || '{}');
 if (qs.get('name')) profile.name = qs.get('name');
@@ -159,7 +162,7 @@ function renderRooms() {
       <span class="gicon">${g.icon}</span>
       <div class="meta">
         <b>${g.name}</b> <span class="code">${r.code}</span>
-        <div class="host">房主 ${r.host || '—'}</div>
+        <div class="host">房主 ${esc(r.host || '—'}</div>
       </div>
       <span class="badge ${r.started ? 'play' : 'wait'}">${r.started ? '游戏中' : '等待中'}</span>
       <span class="cnt">${r.players}/${r.max}</span>
@@ -240,7 +243,7 @@ const GAME_CN = { fxq: '✈️飞行棋', gobang: '⚫五子棋', uno: '🃏UNO'
       top.top.forEach(r => { (byGame[r.game] = byGame[r.game] || []).push(r); });
       html += '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">各游戏榜首</div>';
       html += '<div style="display:flex;gap:8px;flex-wrap:wrap">' + Object.entries(byGame).map(([g, rows]) => {
-        const t3 = rows.slice(0, 3).map((r, i) => `${['🥇','🥈','🥉'][i]} ${r.name} ${r.w}胜`).join(' ');
+        const t3 = rows.slice(0, 3).map((r, i) => `${['🥇','🥈','🥉'][i]} ${esc(r.name} ${r.w}胜`).join(' ');
         return `<span style="background:var(--panel);border-radius:8px;padding:6px 10px;font-size:13px">${GAME_CN[g] || g}：${t3}</span>`;
       }).join('') + '</div>';
     }

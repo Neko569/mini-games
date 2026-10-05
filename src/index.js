@@ -11,6 +11,38 @@ import { LobbyDO } from './lobby.js';
 
 export { RoomDO, GobangRoomDO, UnoRoomDO, PlanesRoomDO, DavinciRoomDO, KittensRoomDO, StatsDO, ReversiRoomDO, LobbyDO };
 
+// ---- 安全：简易限速（每 IP 每路由滑动窗口，内存实现，重启清零） ----
+const RATE = { 'new-room': 10, 'room-info': 60, lobby: 30, stats: 30 }; // 次/分钟
+const rateMap = new Map();
+function rateLimit(req, route) {
+  const limit = RATE[route];
+  if (!limit) return null;
+  const ip = req.headers.get('CF-Connecting-IP') || 'local';
+  const now = Date.now();
+  const key = route + ':' + ip;
+  const arr = (rateMap.get(key) || []).filter(ts => now - ts < 60000);
+  if (arr.length >= limit) { rateMap.set(key, arr); return true; }
+  arr.push(now);
+  rateMap.set(key, arr);
+  if (rateMap.size > 10000) rateMap.clear(); // 防内存膨胀
+  return false;
+}
+
+// ---- 安全：静态资源响应附加安全头 ----
+const SEC_HEADERS = {
+  'content-security-policy': "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+};
+async function assetWithHeaders(env, req) {
+  const resp = await env.ASSETS.fetch(req);
+  const headers = new Headers(resp.headers);
+  for (const [k, v] of Object.entries(SEC_HEADERS)) headers.set(k, v);
+  return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers });
+}
+
 // 房间号首字母标识游戏：f=飞行棋 g=五子棋（加入时按首字母路由）
 const GAMES = {
   fxq:    { cls: 'ROOM',    prefix: 'f', abc: 'abcdefghjkmnpqrstuvwxyz', dig: '23456789' },
@@ -56,6 +88,7 @@ export default {
 
     // 新建房：/api/new-room?game=fxq|gobang
     if (url.pathname === '/api/new-room') {
+      if (rateLimit(req, 'new-room')) return Response.json({ error: '太快了，稍后再试' }, { status: 429, headers: CORS });
       const game = url.searchParams.get('game') || 'fxq';
       const cfg = GAMES[game];
       if (!cfg) return Response.json({ error: 'unknown game' }, { status: 400, headers: CORS });
@@ -70,6 +103,7 @@ export default {
 
     // 房间探测：/api/room-info?code=xxxx（按首字母识别游戏）
     if (url.pathname === '/api/room-info') {
+      if (rateLimit(req, 'room-info')) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
       const code = (url.searchParams.get('code') || '').toLowerCase();
       if (!/^[a-z0-9]{4}$/.test(code)) return Response.json({ error: 'code' }, { status: 400, headers: CORS });
       const PREFIX_GAME = { f: 'fxq', g: 'gobang', u: 'uno', p: 'planes', d: 'davinci', k: 'kittens', r: 'reversi' };
@@ -81,16 +115,24 @@ export default {
 
     // 大厅：跨游戏活跃房间列表（LobbyDO 维护，房间 DO 状态变化时上报）
     if (url.pathname === '/api/lobby') {
+      if (rateLimit(req, 'lobby')) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
       const stub = env.LOBBY.get(env.LOBBY.idFromName('global'));
       return stub.fetch('https://lobby/list');
     }
 
-    // WS 升级：/ws/{game}/{code}
+    // 战绩：只读查询（写入仅限 DO 内部 binding 上报，公开写接口已封禁防伪造/投毒）
     if (url.pathname === '/api/stats') {
-    const stub = env.STATS.get(env.STATS.idFromName('global'));
-    const inner = req.method === 'POST' ? 'https://stats/record' : 'https://stats/query' + url.search;
-    return stub.fetch(inner, req.method === 'POST' ? req : undefined);
-  }
+      if (req.method !== 'GET') return new Response('method not allowed', { status: 405, headers: CORS });
+      if (rateLimit(req, 'stats')) return Response.json({ error: '太快了' }, { status: 429, headers: CORS });
+      const stub = env.STATS.get(env.STATS.idFromName('global'));
+      return stub.fetch('https://stats/query' + url.search);
+    }
+
+    // WS 升级：/ws/{game}/{code}（Origin 校验防跨站 WebSocket 劫持）
+    const origin = req.headers.get('Origin');
+    if (origin && (() => { try { return new URL(origin).host !== url.host; } catch { return true; } })()) {
+      return new Response('origin not allowed', { status: 403 });
+    }
   const m = url.pathname.match(/^\/ws\/(fxq|gobang|uno|planes|davinci|kittens|reversi)\/([a-z0-9]{4})$/i);
     if (m) {
       const game = m[1].toLowerCase();
@@ -101,9 +143,9 @@ export default {
       return stub.fetch(`https://do/join${qs}room=${code}`, req);
     }
 
-    // 静态资源
+    // 静态资源（附加安全响应头）
     if (env.ASSETS) {
-      return env.ASSETS.fetch(req);
+      return assetWithHeaders(env, req);
     }
     return new Response('not found', { status: 404 });
   },

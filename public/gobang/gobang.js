@@ -94,7 +94,7 @@ function renderPlayers() {
   $('#players').innerHTML = (players || []).map((p, i) => p ? `
     <div class="player ${p.connected ? '' : 'off'} ${i === mySeat ? 'me' : ''}">
       <span class="dot" style="background:${COLORS[i]};border:1px solid #555"></span>
-      <img class="pavatar" src="${p.avatar || avatarURI(p.gid || p.name || i, p.name)}" alt="" onerror="this.src=avatarURI(p.gid || p.name || i, p.name)">
+      <img class="pavatar" src="${esc(p.avatar) || avatarURI(p.gid || p.name || i, p.name)}" alt="" onerror="this.src=avatarURI(p.gid || p.name || i, p.name)">
       <span class="pname">${esc(p.name)}</span>
       ${p.owner ? '<span class="badge">房主</span>' : ''}
       <span class="conn">${p.connected ? CN[i] : CN[i] + '·离线'}</span>
