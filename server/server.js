@@ -252,6 +252,9 @@ wss.on('connection', (ws, req, game, code, url) => {
   r.conns.add(ws);
   r.tags.set(ws, tag);
   if (r.recycleTimer) { clearTimeout(r.recycleTimer); r.recycleTimer = null; }
+  // 死连接检测：协议层 pong 判活（浏览器/ws 客户端自动应答，客户端零改动）
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
   // 心跳兜底：客户端发 {"t":"ping"} 由 base.webSocketMessage 应答 pong
   ws.on('message', (data) => { r.base.webSocketMessage(ws, data.toString()).catch((e) => console.error('[msg]', e && e.message)); });
   ws.on('close', () => {
@@ -279,6 +282,21 @@ setInterval(() => {
   // 内存兜底清理：无连接且 data 为空的房间直接移除
   for (const [k, r] of rooms) if (r.conns.size === 0 && !r.data) rooms.delete(k);
 }, 60 * 1000).unref();
+
+// ---------- 死连接主动清理（对齐 CF 版边缘自动检测死 socket 的行为）----------
+// TCP 半开连接（断网/杀后台/NAT 超时）不会有 close 帧，靠协议层 ping/pong 判活：
+// 30s 一轮，先 ping；上一轮没回 pong 的直接 terminate() —— 触发 close 事件
+// 走既有清理链路（座位释放 → webSocketClose → 无连接 10 分钟后房间回收）。
+const HEARTBEAT_MS = +(process.env.HEARTBEAT_MS || 30 * 1000);
+setInterval(() => {
+  for (const r of rooms.values()) {
+    for (const ws of r.conns) {
+      if (ws.isAlive === false) { try { ws.terminate(); } catch {} continue; }
+      ws.isAlive = false;
+      try { ws.ping(); } catch {}
+    }
+  }
+}, HEARTBEAT_MS).unref();
 
 httpServer.listen(PORT, HOST, () => {
   console.log(`[fxq-node] listening on http://${HOST}:${PORT} (static: ${STATIC_DIR}, rateLimit: ${RATE_LIMIT_OFF ? 'OFF' : 'ON'})`);
