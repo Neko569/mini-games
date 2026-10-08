@@ -1,0 +1,23 @@
+[Unit]
+Description=fxq 游戏平台 Node 版服务端
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fxq
+WorkingDirectory=/opt/fxq-node
+ExecStart=/usr/bin/node server.js
+Environment=PORT=8787
+Environment=NODE_ENV=production
+Restart=always
+RestartSec=3
+# 安全加固
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/fxq-node/src
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

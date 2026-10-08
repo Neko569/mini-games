@@ -1,0 +1,13 @@
+{
+  "name": "fxq-node",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "fxq 游戏平台 Node.js 版服务端（与 CF 版协议兼容）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

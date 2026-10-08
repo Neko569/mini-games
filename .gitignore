@@ -2,3 +2,7 @@ node_modules/
 .wrangler/
 *.log
 wrangler.out
+
+# vps-node 服务端运行时产物
+server/node_modules/
+server/src/stats.json

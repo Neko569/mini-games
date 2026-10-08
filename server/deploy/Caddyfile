@@ -1,0 +1,8 @@
+# Caddy 反代配置 —— 自动申请/续期 HTTPS，WebSocket 透明转发
+# 用法：把 game.example.com 换成你的域名（install.sh 会自动替换），放到 /etc/caddy/Caddyfile
+game.example.com {
+	encode zstd gzip
+
+	# 静态页面 + REST + WS 全部转发给 fxq-node
+	reverse_proxy 127.0.0.1:8787
+}
